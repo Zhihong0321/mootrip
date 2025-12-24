@@ -1,0 +1,53 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Day {
+  id        String     @id @default(cuid())
+  date      DateTime
+  title     String
+  order     Int
+  locations Location[]
+
+  @@index([order])
+}
+
+model Location {
+  id        String   @id @default(cuid())
+  name_en   String
+  name_cn   String?
+  latitude  Float?
+  longitude Float?
+  dayId     String
+  day       Day      @relation(fields: [dayId], references: [id])
+  order     Int
+  photos    Photo[]
+
+  @@index([dayId])
+  @@index([order])
+}
+
+model Photo {
+  id          String   @id @default(cuid())
+  filename    String
+  thumbnail   String
+  medium      String
+  full        String
+  aspectRatio Float
+  dateTaken   DateTime
+  caption     String?
+  locationId  String
+  location    Location @relation(fields: [locationId], references: [id])
+  order       Int
+
+  @@index([locationId])
+  @@index([order])
+}
