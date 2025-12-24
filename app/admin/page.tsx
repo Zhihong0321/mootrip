@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Camera, Calendar, MapPin, Database, ArrowRight, Upload, Settings } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { PhotoActivityList } from "@/components/PhotoActivityList";
+import { Toaster } from "sonner";
 
 export const dynamic = "force-dynamic";
 
@@ -76,25 +77,7 @@ export default async function AdminDashboard() {
             <CardTitle className="text-lg font-black uppercase italic tracking-tight">Recent Activity</CardTitle>
           </CardHeader>
           <CardContent className="px-4 pb-6">
-            <div className="space-y-2">
-              {recentPhotos.map((photo: any) => (
-                <div key={photo.id} className="flex items-center gap-4 p-3 rounded-2xl hover:bg-muted/50 transition-colors group">
-                  <div className="w-12 h-12 rounded-xl bg-muted overflow-hidden flex-shrink-0 shadow-sm border border-muted-foreground/10">
-                    <img src={photo.thumbnail} alt="" className="w-full h-full object-cover transition-transform group-hover:scale-110" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold truncate leading-none mb-1">{photo.filename.split('-').slice(1).join('-')}</p>
-                    <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-tighter">
-                        {photo.location.name_en} • {new Date(photo.dateTaken).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <Badge variant="outline" className="text-[9px] px-1.5 h-5 font-black uppercase hidden sm:flex border-primary/20 text-primary">{photo.location.name_cn || 'N/A'}</Badge>
-                </div>
-              ))}
-              {recentPhotos.length === 0 && (
-                  <p className="text-sm text-muted-foreground py-12 text-center font-medium italic">No memories captured yet.</p>
-              )}
-            </div>
+            <PhotoActivityList initialPhotos={recentPhotos} />
           </CardContent>
         </Card>
 
@@ -137,6 +120,7 @@ export default async function AdminDashboard() {
           </CardContent>
         </Card>
       </div>
+      <Toaster position="top-center" />
     </div>
   );
 }

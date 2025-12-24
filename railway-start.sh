@@ -3,10 +3,10 @@ echo "--- RAILWAY STARTUP (PORT 8080) ---"
 
 # 1. SETUP PERSISTENCE
 if [ -d "/storage" ]; then
-  echo "Linking persistent storage..."
+  echo "Ensuring storage directories..."
   mkdir -p /storage/uploads/thumbnails /storage/uploads/medium /storage/uploads/full
-  rm -rf public/uploads
-  ln -s /storage/uploads public/uploads
+  # We use an API route proxy for /uploads, so no symlink needed in production
+  # This avoids issues with Next.js not following symlinks for static files
 fi
 
 # 2. RUN MIGRATIONS

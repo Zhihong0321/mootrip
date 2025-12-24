@@ -61,6 +61,12 @@ export async function GET() {
       const target = fs.readlinkSync(publicUploadsPath);
       diagnostics.storage.symlink_valid = target.includes("/storage/uploads");
       diagnostics.storage.symlink_target = target;
+      
+      // List thumb files for debug
+      const thumbDir = path.join(publicUploadsPath, "thumbnails");
+      if (fs.existsSync(thumbDir)) {
+          diagnostics.storage.thumbnail_files = fs.readdirSync(thumbDir).slice(0, 10);
+      }
     }
   } catch (e: any) {
     diagnostics.storage.symlink_error = e.message;

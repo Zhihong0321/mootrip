@@ -17,6 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { Trash2 } from "lucide-react";
 
 export default function UploadPage() {
   const [days, setDays] = useState<any[]>([]);
@@ -24,6 +25,19 @@ export default function UploadPage() {
   const [selectedDay, setSelectedDay] = useState<string>("");
   const [selectedLocation, setSelectedLocation] = useState<string>("");
   const [uploadedPhotos, setUploadedPhotos] = useState<any[]>([]);
+
+  const handleDeletePhoto = async (id: string) => {
+    if (!confirm("Delete this photo?")) return;
+    try {
+      const res = await fetch(`/api/photos/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        setUploadedPhotos(prev => prev.filter(p => p.id !== id));
+        toast.success("Photo deleted");
+      }
+    } catch (err) {
+      toast.error("Delete failed");
+    }
+  };
 
   const [newDayOpen, setNewDayOpen] = useState(false);
   const [newLocOpen, setNewLocOpen] = useState(false);
@@ -212,15 +226,27 @@ export default function UploadPage() {
         <div className="space-y-4">
           <h2 className="text-xs uppercase font-black tracking-[0.2em] text-muted-foreground px-1">Session History</h2>
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
-            {uploadedPhotos.map((photo) => (
-              <div key={photo.id} className="relative aspect-square rounded-xl overflow-hidden bg-muted shadow-sm border border-muted-foreground/10 group">
-                <img
-                  src={photo.thumbnail}
-                  alt={photo.filename}
-                  className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-110"
-                />
-              </div>
-            ))}
+            {uploadedPhotos.map((photo) => {
+              if (!photo || !photo.id) return null;
+              return (
+                <div key={photo.id} className="relative aspect-square rounded-xl overflow-hidden bg-muted shadow-sm border border-muted-foreground/10 group">
+                  <img
+                    src={photo.thumbnail || ""}
+                    alt={photo.filename || "uploading"}
+                    className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-110"
+                    onError={(e) => {
+                        (e.target as HTMLImageElement).src = "https://placehold.co/100x100?text=Error";
+                    }}
+                  />
+                  <button 
+                    onClick={() => handleDeletePhoto(photo.id)}
+                    className="absolute top-1 right-1 p-1.5 rounded-lg bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
