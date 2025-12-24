@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-echo "--- MOOTRIP STARTUP (FULL IMAGE) ---"
+echo "--- MOOTRIP STARTUP ---"
 
 # 1. STORAGE
 if [ -d "/storage" ]; then
@@ -15,6 +15,6 @@ fi
 su-exec nextjs npx prisma migrate deploy || echo "Prisma migrate failed"
 
 # 3. START SERVER
-echo "Starting Next.js via next start..."
-export HOSTNAME="0.0.0.0"
-exec su-exec nextjs npx next start -p ${PORT:-3000}
+echo "Starting Next.js on 0.0.0.0:${PORT:-3000}..."
+# Using -H 0.0.0.0 to force binding to all interfaces
+exec su-exec nextjs npx next start -H 0.0.0.0 -p ${PORT:-3000}
