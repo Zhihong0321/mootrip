@@ -29,8 +29,8 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Prisma needs openssl and su-exec for permission management
-RUN apk add --no-cache openssl su-exec
+# Prisma needs openssl, su-exec, and libc6-compat for native modules
+RUN apk add --no-cache openssl su-exec libc6-compat
 
 RUN addgroup -S -g 1001 nodejs
 RUN adduser -S -u 1001 -G nodejs nextjs
