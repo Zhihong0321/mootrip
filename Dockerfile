@@ -29,8 +29,8 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Prisma needs openssl
-RUN apk add --no-cache openssl
+# Prisma needs openssl and su-exec for permission management
+RUN apk add --no-cache openssl su-exec
 
 RUN addgroup -S -g 1001 nodejs
 RUN adduser -S -u 1001 -G nodejs nextjs
@@ -48,8 +48,6 @@ COPY --from=builder --chown=nextjs:nodejs /app/entrypoint.sh ./entrypoint.sh
 
 # Ensure the entrypoint script is executable
 RUN chmod +x entrypoint.sh
-
-USER nextjs
 
 EXPOSE 3000
 
