@@ -516,20 +516,20 @@ docs(readme): add setup instructions
 
 | Milestone | Status | Notes |
 |-----------|--------|-------|
-| 1. Foundation | Not Started | |
-| 2. Database | Not Started | |
-| 3. Image Pipeline | Not Started | |
-| 4. Admin Upload | Not Started | |
-| 5. Admin Management | Not Started | |
-| 6. Welcome Screen | Not Started | |
-| 7. Day Navigator | Not Started | |
-| 8. Masonry Grid | Not Started | |
-| 9. Lightbox | Not Started | |
-| 10. Dashboard | Not Started | |
-| 11. Performance | Not Started | |
-| 12. Testing | Not Started | |
-| 13. Deployment | Not Started | |
-| 14. Documentation | Not Started | |
+| 1. Foundation | Completed | Next.js 14 + TS + Tailwind + shadcn |
+| 2. Database | Completed | Prisma 7 + SQLite with Indexes |
+| 3. Image Pipeline | Completed | Client-side optimization (2560px) |
+| 4. Admin Upload | Completed | Batch upload + EXIF + Wake Lock |
+| 5. Admin Management | Completed | Drag-and-drop reordering (dnd-kit) |
+| 6. Welcome Screen | Completed | Framer Motion reveals + animations |
+| 7. Day Navigator | Completed | Sticky navigation + badge counts |
+| 8. Masonry Grid | Completed | Responsive staggered grid + reveals |
+| 9. Lightbox | Completed | Spring transitions + mobile gestures |
+| 10. Dashboard | Completed | Live stats + Recent Activity |
+| 11. Performance | Completed | next/image + Skeletons + DB Indexes |
+| 12. Testing | Completed | Local build verified successfully |
+| 13. Deployment | Completed | Docker standalone + Railway Persistence |
+| 14. Documentation | Completed | README + User Guide + API docs |
 
 ---
 
