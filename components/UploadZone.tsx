@@ -22,6 +22,19 @@ export function UploadZone({ onUploadComplete, dayId, locationId }: UploadZonePr
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     let wakeLock: any = null;
     
+    // Log start of session
+    fetch("/api/logs", {
+        method: "POST",
+        body: JSON.stringify({ 
+            level: "info", 
+            message: `Upload session started: ${acceptedFiles.length} files`,
+            details: { 
+                ua: navigator.userAgent,
+                files: acceptedFiles.map(f => ({ name: f.name, size: f.size, type: f.type }))
+            }
+        })
+    });
+
     if ('wakeLock' in navigator) {
       try {
         wakeLock = await (navigator as any).wakeLock.request('screen');
@@ -64,9 +77,26 @@ export function UploadZone({ onUploadComplete, dayId, locationId }: UploadZonePr
 
         onUploadComplete(data);
         setProgress(((i + 1) / acceptedFiles.length) * 100);
-      } catch (error) {
+      } catch (error: any) {
         console.error(error);
-        toast.error(`Failed to process or upload ${file.name}`);
+        const errorMsg = error?.message || "Unknown processing/upload error";
+        
+        // Log detailed error to server
+        fetch("/api/logs", {
+            method: "POST",
+            body: JSON.stringify({ 
+                level: "error", 
+                message: `Upload failed for ${file.name}`,
+                details: { 
+                    error: errorMsg,
+                    stack: error?.stack,
+                    fileName: file.name,
+                    fileSize: file.size
+                }
+            })
+        });
+
+        toast.error(`Failed: ${file.name} - ${errorMsg}`);
         setProcessing(false);
       }
     }

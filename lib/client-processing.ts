@@ -45,24 +45,27 @@ export async function processImageClient(file: File): Promise<ProcessedImageResu
     maxWidthOrHeight: 400,
     useWebWorker: true,
     initialQuality: 0.7,
-    fileType: "image/webp", // Use WebP for thumbnails to save space
+    fileType: "image/webp",
   };
 
-  const [full, medium, thumb] = await Promise.all([
-    imageCompression(file, fullOptions),
-    imageCompression(file, mediumOptions),
-    imageCompression(file, thumbOptions),
-  ]);
-
-  return {
-    full,
-    medium,
-    thumbnail: thumb,
-    metadata: {
-      dateTaken: exif?.DateTimeOriginal ? new Date(exif.DateTimeOriginal).toISOString() : new Date().toISOString(),
-      latitude: exif?.latitude,
-      longitude: exif?.longitude,
-      aspectRatio,
-    },
-  };
+  // Process sequentially to save memory on mobile devices
+  try {
+    const full = await imageCompression(file, fullOptions);
+    const medium = await imageCompression(file, mediumOptions);
+    const thumb = await imageCompression(file, thumbOptions);
+    
+    return {
+      full,
+      medium,
+      thumbnail: thumb,
+      metadata: {
+        dateTaken: exif?.DateTimeOriginal ? new Date(exif.DateTimeOriginal).toISOString() : new Date().toISOString(),
+        latitude: exif?.latitude,
+        longitude: exif?.longitude,
+        aspectRatio,
+      },
+    };
+  } catch (err: any) {
+    throw new Error(`Compression failed: ${err.message}`);
+  }
 }

@@ -51,3 +51,13 @@ model Photo {
   @@index([locationId])
   @@index([order])
 }
+
+model Log {
+  id        String   @id @default(cuid())
+  level     String   @default("info")
+  message   String
+  details   String?
+  timestamp DateTime @default(now())
+
+  @@index([timestamp])
+}
