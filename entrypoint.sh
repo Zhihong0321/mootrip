@@ -1,41 +1,23 @@
 #!/bin/sh
 set -e
 
-echo "--- MOOTRIP PRODUCTION STARTUP ---"
-echo "Current User: $(whoami)"
-echo "PATH: $PATH"
+echo "--- MOOTRIP DEBUG STARTUP ---"
+echo "UID: $(id -u)"
+echo "DB: $DATABASE_URL"
 
-# 1. SETUP PERSISTENCE & PERMISSIONS (as root)
+# 1. PERMISSIONS
 if [ -d "/storage" ]; then
-  echo "Step 1: Configuring /storage volume..."
-  mkdir -p /storage/uploads/thumbnails /storage/uploads/medium /storage/uploads/full
-  chown -R nextjs:nodejs /storage
-  
-  # Create symlink for serving photos
-  rm -rf public/uploads
-  ln -s /storage/uploads public/uploads
-  echo "Storage linked."
-else
-  echo "Step 1: Using local ephemeral storage."
-  mkdir -p public/uploads/thumbnails public/uploads/medium public/uploads/full
-  chown -R nextjs:nodejs public/uploads
+  chown -R 1001:1001 /storage || echo "chown failed"
 fi
 
-# 2. RUN MIGRATIONS
-echo "Step 2: Running Prisma migrations..."
-# Try finding prisma binary
-PRISMA_BIN=$(which prisma || echo "/usr/local/bin/prisma")
-echo "Using Prisma binary at: $PRISMA_BIN"
+# 2. MIGRATIONS (Try as root first to see if it works)
+echo "Running migrations as root..."
+prisma migrate deploy || echo "Root migration failed"
 
-if [ -f "$PRISMA_BIN" ]; then
-  su-exec nextjs "$PRISMA_BIN" migrate deploy || echo "MIGRATION FAILED - check database logs"
-else
-  echo "ERROR: Prisma binary not found. Trying npx..."
-  su-exec nextjs npx prisma migrate deploy || echo "npx prisma failed"
-fi
-
-# 3. START SERVER
-echo "Step 3: Starting Next.js standalone server..."
+# 3. SERVER
+echo "Starting Next.js..."
 export HOSTNAME="0.0.0.0"
-# Ensure we are in the correct directory
-exec su-exec nextjs node server.js
+export PORT="3000"
+
+# Running as root for this debug cycle to rule out su-exec issues
+exec node server.js
