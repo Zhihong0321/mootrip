@@ -1,29 +1,13 @@
 #!/bin/sh
 set -e
 
-echo "--- MOOTRIP DEBUG ---"
-ls -R /app
+echo "--- MOOTRIP MINIMAL STARTUP ---"
 
-# 1. PERMISSION RECONCILIATION
-if [ -d "/storage" ]; then
-  chown -R nextjs:nodejs /storage
-  mkdir -p /storage/uploads/thumbnails /storage/uploads/medium /storage/uploads/full
-  chown -R nextjs:nodejs /storage/uploads
-fi
+# Skip migrations for now to isolate 502
+echo "Skipping migrations..."
 
-# 2. SYMLINK PREP
-rm -rf public/uploads
-if [ -d "/storage" ]; then
-  ln -s /storage/uploads public/uploads
-else
-  mkdir -p public/uploads/thumbnails public/uploads/medium public/uploads/full
-  chown -R nextjs:nodejs public/uploads
-fi
-
-# 3. DATABASE MIGRATIONS
-su-exec nextjs ./node_modules/.bin/prisma migrate deploy || echo "MIGRATION FAILED"
-
-# 4. START SERVER
-echo "Starting Next.js..."
+# Start the application as root
 export HOSTNAME="0.0.0.0"
+export PORT="3000"
+echo "Starting Next.js server on 0.0.0.0:3000..."
 exec node server.js
