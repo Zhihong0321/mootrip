@@ -1,6 +1,7 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Settings as SettingsIcon, Shield, Cloud, Info } from "lucide-react";
+import { Settings as SettingsIcon, Shield, Cloud, Info, ScrollText } from "lucide-react";
+import Link from "next/link";
 
 export default function SettingsPage() {
   return (
@@ -30,6 +31,23 @@ export default function SettingsPage() {
                 <span className="text-xs font-black uppercase tracking-widest text-muted-foreground">Image Optimizer</span>
                 <span className="text-sm font-bold uppercase tracking-tighter italic">Pro Client-Side Pipeline</span>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-none shadow-xl shadow-primary/5 bg-card/50 backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle className="text-lg font-bold flex items-center gap-2">
+              <ScrollText className="w-5 h-5 text-primary" /> Session Logs
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">Access detailed error logs and processing diagnostics from your recent upload sessions.</p>
+            <Link 
+              href="/admin/logs" 
+              className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-primary hover:underline"
+            >
+              <Info className="w-4 h-4" /> View Full Activity Log
+            </Link>
           </CardContent>
         </Card>
 

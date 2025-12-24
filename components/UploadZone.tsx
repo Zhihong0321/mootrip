@@ -98,6 +98,7 @@ export function UploadZone({ onUploadComplete, dayId, locationId }: UploadZonePr
 
         toast.error(`Failed: ${file.name} - ${errorMsg}`);
         setProcessing(false);
+        setUploading(false); // Ensure UI resets
       }
     }
 
