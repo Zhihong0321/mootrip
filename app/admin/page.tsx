@@ -75,7 +75,7 @@ export default async function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recentPhotos.map((photo) => (
+              {recentPhotos.map((photo: any) => (
                 <div key={photo.id} className="flex items-center gap-4 p-2 rounded-xl hover:bg-muted/50 transition-colors">
                   <div className="w-12 h-12 rounded-lg bg-muted overflow-hidden">
                     <img src={photo.thumbnail} alt="" className="w-full h-full object-cover" />
