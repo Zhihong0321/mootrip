@@ -26,23 +26,22 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y openssl su-exec
 
-# Install Prisma CLI globally
+# Install Prisma CLI globally to ensure it's available for migrations
 RUN npm install -g prisma@7.2.0
 
 # Create user
 RUN groupadd --gid 1001 nodejs && \
     useradd --uid 1001 --gid 1001 --create-home nextjs
 
+# Set correct permissions
 COPY --from=builder /app/public ./public
-RUN mkdir .next && chown -R nextjs:nodejs .next public
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/entrypoint.sh ./entrypoint.sh
+COPY --from=builder /app/package.json ./package.json
 
-# Next.js Standalone
+# Standard Next.js standalone setup
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
-COPY --from=builder --chown=nextjs:nodejs /app/entrypoint.sh ./entrypoint.sh
-COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
-COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 
 RUN chmod +x entrypoint.sh
 
