@@ -1,37 +1,32 @@
 #!/bin/sh
 set -e
 
-echo "--- MOOTRIP PRODUCTION STARTUP (DEBIAN) ---"
-echo "Starting as user: $(whoami)"
+echo "--- MOOTRIP STARTUP ---"
 echo "Current directory: $(pwd)"
+echo "Listing top level:"
+ls -F
 
-# 1. SETUP PERSISTENCE & PERMISSIONS (as root)
+# 1. VOLUME SETUP
 if [ -d "/storage" ]; then
-  echo "Step 1: Configuring /storage volume..."
+  echo "Setting up persistent storage..."
   mkdir -p /storage/uploads/thumbnails /storage/uploads/medium /storage/uploads/full
-  
-  # Ensure the app user (1001) owns the storage
   chown -R 1001:1001 /storage
   
-  # Link public/uploads to the persistent storage
-  echo "Linking public/uploads to /storage/uploads..."
+  # Remove build-time directory and link to volume
   rm -rf public/uploads
   ln -s /storage/uploads public/uploads
-  echo "Storage linked successfully."
-else
-  echo "Step 1: No /storage volume detected. Using local ephemeral storage."
-  mkdir -p public/uploads/thumbnails public/uploads/medium public/uploads/full
-  chown -R 1001:1001 public/uploads
+  echo "Storage linked."
 fi
 
-# 2. RUN MIGRATIONS
-echo "Step 2: Running Prisma migrations..."
-# Using global prisma CLI installed in runner
-prisma migrate deploy || echo "MIGRATION WARNING: Could not run migrations. Check DATABASE_URL."
+# 2. DATABASE SETUP
+echo "Checking database..."
+# Run migrations as root to ensure we can write to the volume if needed
+# then we'll drop privileges for the server
+prisma migrate deploy || echo "Prisma migrate failed."
 
-# 3. START SERVER (Drop privileges to nextjs)
-echo "Step 3: Starting Next.js standalone server on port ${PORT:-3000}..."
+# 3. RUNTIME
+echo "Starting Next.js server on port ${PORT:-3000}..."
 export HOSTNAME="0.0.0.0"
 
-# Using su-exec to run the application as the non-privileged user
+# Use su-exec to run as nextjs
 exec su-exec nextjs node server.js

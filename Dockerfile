@@ -23,25 +23,26 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Install runtime dependencies
-RUN apt-get update && apt-get install -y openssl su-exec
+RUN apt-get update && apt-get install -y openssl su-exec libc6-compat
 
-# Install Prisma CLI globally to ensure it's available for migrations
+# Install Prisma CLI globally
 RUN npm install -g prisma@7.2.0
 
-# Create user
 RUN groupadd --gid 1001 nodejs && \
     useradd --uid 1001 --gid 1001 --create-home nextjs
 
-# Set correct permissions
+# Set up the app directory
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/entrypoint.sh ./entrypoint.sh
 COPY --from=builder /app/package.json ./package.json
 
-# Standard Next.js standalone setup
+# Copy standalone build
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# Correct permissions for the internal directories
+RUN chown -R nextjs:nodejs /app
 
 RUN chmod +x entrypoint.sh
 
