@@ -1,13 +1,32 @@
 #!/bin/sh
 set -e
 
-echo "--- MOOTRIP MINIMAL STARTUP ---"
+echo "--- MOOTRIP PRODUCTION STARTUP ---"
 
-# Skip migrations for now to isolate 502
-echo "Skipping migrations..."
+# 1. SETUP PERSISTENCE & PERMISSIONS (as root)
+if [ -d "/storage" ]; then
+  echo "Configuring /storage volume..."
+  mkdir -p /storage/uploads/thumbnails /storage/uploads/medium /storage/uploads/full
+  # Ensure nextjs user owns the storage
+  chown -R nextjs:nodejs /storage
+  
+  # Create symlink for serving photos
+  rm -rf public/uploads
+  ln -s /storage/uploads public/uploads
+  echo "Storage linked."
+else
+  echo "Using local ephemeral storage."
+  mkdir -p public/uploads/thumbnails public/uploads/medium public/uploads/full
+  chown -R nextjs:nodejs public/uploads
+fi
 
-# Start the application as root
+# 2. RUN MIGRATIONS (as nextjs)
+echo "Running Prisma migrations..."
+# Use su-exec to run migrations as the app user to ensure file ownership is correct
+su-exec nextjs ./node_modules/.bin/prisma migrate deploy
+echo "Migrations applied."
+
+# 3. START SERVER (as nextjs)
+echo "Starting Next.js standalone server..."
 export HOSTNAME="0.0.0.0"
-export PORT="3000"
-echo "Starting Next.js server on 0.0.0.0:3000..."
-exec node server.js
+exec su-exec nextjs node server.js
