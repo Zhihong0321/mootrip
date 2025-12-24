@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { processImageClient } from "@/lib/client-processing";
+import { CloudUpload, Zap } from "lucide-react";
 
 interface UploadZoneProps {
   onUploadComplete: (photo: any) => void;
@@ -21,7 +22,6 @@ export function UploadZone({ onUploadComplete, dayId, locationId }: UploadZonePr
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     let wakeLock: any = null;
     
-    // Request Wake Lock to prevent phone from sleeping during upload
     if ('wakeLock' in navigator) {
       try {
         wakeLock = await (navigator as any).wakeLock.request('screen');
@@ -71,7 +71,6 @@ export function UploadZone({ onUploadComplete, dayId, locationId }: UploadZonePr
     setUploading(false);
     toast.success("Upload session complete");
 
-    // Release Wake Lock
     if (wakeLock) {
       wakeLock.release().then(() => {
         wakeLock = null;
@@ -87,40 +86,41 @@ export function UploadZone({ onUploadComplete, dayId, locationId }: UploadZonePr
   return (
     <Card
       {...getRootProps()}
-      className={`p-10 border-2 border-dashed cursor-pointer transition-colors ${
-        isDragActive ? "border-primary bg-primary/10" : "border-muted-foreground/25"
+      className={`relative p-6 md:p-12 border-2 border-dashed rounded-3xl cursor-pointer transition-all duration-300 shadow-inner ${
+        isDragActive 
+          ? "border-primary bg-primary/5 scale-[0.99] ring-4 ring-primary/10" 
+          : "border-muted-foreground/20 hover:border-primary/50 hover:bg-muted/30"
       }`}
     >
       <input {...getInputProps()} />
+      
       <div className="flex flex-col items-center justify-center text-center space-y-4">
-        <div className="p-4 rounded-full bg-primary/10">
-          <svg
-            className="w-8 h-8 text-primary"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
+        <div className={`p-4 rounded-2xl transition-colors duration-300 ${isDragActive ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'bg-muted text-muted-foreground'}`}>
+          <CloudUpload className={`w-8 h-8 ${isDragActive ? 'animate-bounce' : ''}`} />
         </div>
-        <div>
-          <p className="text-lg font-medium">
-            {processing ? "Optimizing photo..." : isDragActive ? "Drop photos here" : "Click or drag photos here"}
+        
+        <div className="space-y-1">
+          <p className="text-xl font-black uppercase italic tracking-tight">
+            {processing ? "Optimizing Assets" : isDragActive ? "Release to Drop" : "Tap to Select"}
           </p>
-          <p className="text-sm text-muted-foreground">
-            {processing ? "Heavier lifting is being done in your browser" : "Upload images from your Shanghai trip"}
+          <p className="text-xs text-muted-foreground font-bold uppercase tracking-[0.1em]">
+            {processing 
+              ? "Applying high-quality compression" 
+              : "Multiple files supported"}
           </p>
         </div>
-        {uploading && (
-          <div className="w-full max-w-xs space-y-2">
-            <Progress value={progress} className="h-2" />
-            <p className="text-xs text-muted-foreground">
-              {processing ? "Crunching pixels..." : `Uploading optimized assets (${Math.round(progress)}%)`}
+
+        {(uploading || processing) && (
+          <div className="w-full max-w-xs space-y-3 pt-2">
+            <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-primary">
+                <span className="flex items-center gap-1">
+                    <Zap className="w-3 h-3 fill-current" /> {processing ? "Processing" : "Transferring"}
+                </span>
+                <span>{Math.round(progress)}%</span>
+            </div>
+            <Progress value={progress} className="h-1.5 bg-muted overflow-hidden" />
+            <p className="text-[9px] text-muted-foreground font-medium uppercase tracking-tighter italic">
+              {processing ? "Heavier lifting is being done in your browser" : "Optimized payloads arriving at destination"}
             </p>
           </div>
         )}

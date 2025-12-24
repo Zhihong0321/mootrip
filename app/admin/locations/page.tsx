@@ -21,7 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Toaster, toast } from "sonner";
-import { Pencil, Trash2, Plus, GripVertical } from "lucide-react";
+import { Pencil, Trash2, Plus, GripVertical, MapPin } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -40,8 +40,10 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
-function SortableRow({ loc, openEdit, deleteLoc, dayTitle }: any) {
+function SortableItem({ loc, openEdit, deleteLoc, dayTitle }: any) {
   const {
     attributes,
     listeners,
@@ -59,25 +61,66 @@ function SortableRow({ loc, openEdit, deleteLoc, dayTitle }: any) {
   };
 
   return (
-    <TableRow ref={setNodeRef} style={style}>
-      <TableCell className="w-[50px]">
-        <button {...attributes} {...listeners} className="cursor-grab p-1 hover:bg-muted rounded">
-          <GripVertical className="w-4 h-4 text-muted-foreground" />
-        </button>
-      </TableCell>
-      <TableCell className="w-[80px] font-mono text-xs">{loc.order}</TableCell>
-      <TableCell className="font-medium">{dayTitle}</TableCell>
-      <TableCell className="font-semibold">{loc.name_en}</TableCell>
-      <TableCell>{loc.name_cn || "-"}</TableCell>
-      <TableCell className="text-right space-x-2">
-        <Button variant="outline" size="icon" onClick={() => openEdit(loc)}>
-          <Pencil className="w-4 h-4" />
-        </Button>
-        <Button variant="destructive" size="icon" onClick={() => deleteLoc(loc.id)}>
-          <Trash2 className="w-4 h-4" />
-        </Button>
-      </TableCell>
-    </TableRow>
+    <div ref={setNodeRef} style={style} className="mb-3 group">
+      {/* Desktop View */}
+      <div className="hidden md:contents">
+        <TableRow>
+          <TableCell className="w-[50px]">
+            <button {...attributes} {...listeners} className="cursor-grab p-1 hover:bg-muted rounded">
+              <GripVertical className="w-4 h-4 text-muted-foreground" />
+            </button>
+          </TableCell>
+          <TableCell className="w-[80px] font-mono text-xs font-bold text-primary">#{loc.order}</TableCell>
+          <TableCell className="font-medium text-muted-foreground text-xs uppercase tracking-tighter">{dayTitle}</TableCell>
+          <TableCell className="font-semibold">{loc.name_en}</TableCell>
+          <TableCell>{loc.name_cn || "-"}</TableCell>
+          <TableCell className="text-right space-x-2">
+            <Button variant="ghost" size="icon" onClick={() => openEdit(loc)} className="h-8 w-8">
+              <Pencil className="w-4 h-4" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={() => deleteLoc(loc.id)} className="h-8 w-8 text-destructive">
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </TableCell>
+        </TableRow>
+      </div>
+
+      {/* Mobile Card View */}
+      <Card className="md:hidden border-muted-foreground/10 shadow-sm overflow-hidden">
+        <CardContent className="p-4 flex items-center gap-4">
+          <div {...attributes} {...listeners} className="cursor-grab p-2 bg-muted/50 rounded-lg">
+            <GripVertical className="w-5 h-5 text-muted-foreground" />
+          </div>
+
+          <div className="flex-1 space-y-1">
+            <div className="flex items-center justify-between">
+                <p className="text-[10px] uppercase font-black tracking-widest text-primary">{dayTitle}</p>
+                <p className="text-[10px] font-mono font-bold text-muted-foreground">ORD {loc.order}</p>
+            </div>
+            <h3 className="font-bold text-lg leading-tight">{loc.name_en}</h3>
+            {loc.name_cn && (
+                <p className="text-sm text-muted-foreground font-medium">{loc.name_cn}</p>
+            )}
+            <div className="flex gap-2 pt-1">
+                {loc.latitude && (
+                    <Badge variant="secondary" className="text-[9px] px-1.5 h-4 font-mono">
+                        {loc.latitude.toFixed(2)}, {loc.longitude.toFixed(2)}
+                    </Badge>
+                )}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Button variant="outline" size="icon" onClick={() => openEdit(loc)} className="h-9 w-9 rounded-full">
+              <Pencil className="w-4 h-4" />
+            </Button>
+            <Button variant="outline" size="icon" onClick={() => deleteLoc(loc.id)} className="h-9 w-9 rounded-full text-destructive">
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
@@ -123,7 +166,7 @@ export default function LocationsPage() {
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     if (filterDayId === "all") {
-        toast.error("Please filter by day to reorder within that day");
+        toast.error("Filter by day first to reorder");
         return;
     }
 
@@ -222,15 +265,15 @@ export default function LocationsPage() {
     .sort((a, b) => a.order - b.order);
 
   return (
-    <div className="container mx-auto py-10">
-      <div className="flex justify-between items-end mb-6">
+    <div className="container px-4 py-8 md:py-12">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-6 mb-8">
         <div className="space-y-4">
-          <h1 className="text-3xl font-bold">Manage Locations</h1>
+          <h1 className="text-4xl font-black tracking-tighter uppercase italic text-primary">Locations</h1>
           <div className="flex items-center gap-4">
-            <div className="w-64">
-              <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-1.5 block">Filter by Day</Label>
+            <div className="w-full max-w-[200px]">
+              <Label className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1.5 block font-bold">Filter By Day</Label>
               <Select value={filterDayId} onValueChange={setFilterDayId}>
-                <SelectTrigger>
+                <SelectTrigger className="h-10 rounded-xl bg-muted/30 border-none">
                   <SelectValue placeholder="All Days" />
                 </SelectTrigger>
                 <SelectContent>
@@ -241,11 +284,6 @@ export default function LocationsPage() {
                 </SelectContent>
               </Select>
             </div>
-            {filterDayId !== "all" && (
-                <p className="text-xs text-primary bg-primary/10 px-3 py-1.5 rounded-full font-medium self-end mb-1">
-                    Drag enabled for Day {getDayTitle(filterDayId)}
-                </p>
-            )}
           </div>
         </div>
         <Dialog open={isOpen} onOpenChange={(val) => {
@@ -253,38 +291,40 @@ export default function LocationsPage() {
             if (!val) setEditingLoc(null);
         }}>
           <DialogTrigger asChild>
-            <Button onClick={() => setFormData({ 
+            <Button className="rounded-full shadow-lg h-12 px-6 font-bold uppercase tracking-widest text-xs w-full md:w-auto" onClick={() => setFormData({ 
                 name_en: "", name_cn: "", dayId: filterDayId !== "all" ? filterDayId : (days[0]?.id || ""), order: filteredLocations.length + 1, latitude: 0, longitude: 0 
             })}>
               <Plus className="w-4 h-4 mr-2" /> Add Location
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md">
+          <DialogContent className="sm:max-w-md rounded-t-3xl sm:rounded-xl">
             <DialogHeader>
-              <DialogTitle>{editingLoc ? "Edit Location" : "Add New Location"}</DialogTitle>
+              <DialogTitle className="text-2xl font-black uppercase italic tracking-tight">{editingLoc ? "Edit Location" : "New Location"}</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-5 pt-4">
               <div className="space-y-2">
-                <Label>Name (English)</Label>
+                <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">English Name</Label>
                 <Input
                   value={formData.name_en}
                   onChange={(e) => setFormData({ ...formData, name_en: e.target.value })}
                   placeholder="e.g. The Bund"
+                  className="h-12 text-lg font-medium bg-muted/30 border-none"
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label>Name (Chinese)</Label>
+                <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Chinese Name</Label>
                 <Input
                   value={formData.name_cn}
                   onChange={(e) => setFormData({ ...formData, name_cn: e.target.value })}
                   placeholder="e.g. 外滩"
+                  className="h-12 text-lg font-medium bg-muted/30 border-none"
                 />
               </div>
               <div className="space-y-2">
-                <Label>Day</Label>
+                <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Assigned Day</Label>
                 <Select value={formData.dayId} onValueChange={(val) => setFormData({ ...formData, dayId: val })}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-12 bg-muted/30 border-none">
                     <SelectValue placeholder="Select Day" />
                   </SelectTrigger>
                   <SelectContent>
@@ -298,34 +338,27 @@ export default function LocationsPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Latitude</Label>
+                  <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Latitude</Label>
                   <Input
                     type="number"
                     step="any"
                     value={formData.latitude}
                     onChange={(e) => setFormData({ ...formData, latitude: parseFloat(e.target.value) })}
+                    className="h-12 bg-muted/30 border-none font-mono"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Longitude</Label>
+                  <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Longitude</Label>
                   <Input
                     type="number"
                     step="any"
                     value={formData.longitude}
                     onChange={(e) => setFormData({ ...formData, longitude: parseFloat(e.target.value) })}
+                    className="h-12 bg-muted/30 border-none font-mono"
                   />
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label>Display Order</Label>
-                <Input
-                  type="number"
-                  value={formData.order}
-                  onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) })}
-                  required
-                />
-              </div>
-              <Button type="submit" className="w-full">
+              <Button type="submit" className="w-full h-14 rounded-2xl text-lg font-bold uppercase tracking-widest shadow-xl shadow-primary/20">
                 {editingLoc ? "Update Location" : "Create Location"}
               </Button>
             </form>
@@ -333,13 +366,13 @@ export default function LocationsPage() {
         </Dialog>
       </div>
 
-      <div className="border rounded-xl overflow-hidden bg-card">
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-          modifiers={[restrictToVerticalAxis]}
-        >
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+        modifiers={[restrictToVerticalAxis]}
+      >
+        <div className="hidden md:block border rounded-xl overflow-hidden bg-card shadow-sm">
           <Table>
             <TableHeader className="bg-muted/50">
               <TableRow>
@@ -357,7 +390,7 @@ export default function LocationsPage() {
                 strategy={verticalListSortingStrategy}
               >
                 {filteredLocations.map((loc) => (
-                  <SortableRow
+                  <SortableItem
                     key={loc.id}
                     loc={loc}
                     dayTitle={getDayTitle(loc.dayId)}
@@ -366,18 +399,36 @@ export default function LocationsPage() {
                   />
                 ))}
               </SortableContext>
-              {filteredLocations.length === 0 && !loading && (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-20 text-muted-foreground">
-                    No locations found for this selection.
-                  </TableCell>
-                </TableRow>
-              )}
             </TableBody>
           </Table>
-        </DndContext>
-      </div>
-      <Toaster />
+        </div>
+
+        {/* Mobile View */}
+        <div className="md:hidden space-y-1">
+          <SortableContext
+            items={filteredLocations.map((l) => l.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            {filteredLocations.map((loc) => (
+              <SortableItem
+                key={loc.id}
+                loc={loc}
+                dayTitle={getDayTitle(loc.dayId)}
+                openEdit={openEdit}
+                deleteLoc={deleteLoc}
+              />
+            ))}
+          </SortableContext>
+        </div>
+
+        {filteredLocations.length === 0 && !loading && (
+          <div className="text-center py-20 bg-muted/20 rounded-3xl border-2 border-dashed border-muted-foreground/10">
+            <MapPin className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
+            <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs">No locations found</p>
+          </div>
+        )}
+      </DndContext>
+      <Toaster position="top-center" />
     </div>
   );
 }

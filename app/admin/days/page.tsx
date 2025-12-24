@@ -20,7 +20,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Toaster, toast } from "sonner";
-import { Pencil, Trash2, Plus, GripVertical } from "lucide-react";
+import { Pencil, Trash2, Plus, GripVertical, Calendar as CalendarIcon, MapPin } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -39,8 +39,10 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
-function SortableRow({ day, openEdit, deleteDay }: any) {
+function SortableItem({ day, openEdit, deleteDay }: any) {
   const {
     attributes,
     listeners,
@@ -58,25 +60,65 @@ function SortableRow({ day, openEdit, deleteDay }: any) {
   };
 
   return (
-    <TableRow ref={setNodeRef} style={style}>
-      <TableCell className="w-[50px]">
-        <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-1 hover:bg-muted rounded">
-          <GripVertical className="w-4 h-4 text-muted-foreground" />
-        </button>
-      </TableCell>
-      <TableCell className="w-[80px] font-mono text-xs">{day.order}</TableCell>
-      <TableCell>{new Date(day.date).toLocaleDateString()}</TableCell>
-      <TableCell className="font-medium">{day.title}</TableCell>
-      <TableCell>{day.locations?.length || 0}</TableCell>
-      <TableCell className="text-right space-x-2">
-        <Button variant="outline" size="icon" onClick={() => openEdit(day)}>
-          <Pencil className="w-4 h-4" />
-        </Button>
-        <Button variant="destructive" size="icon" onClick={() => deleteDay(day.id)}>
-          <Trash2 className="w-4 h-4" />
-        </Button>
-      </TableCell>
-    </TableRow>
+    <div ref={setNodeRef} style={style} className="mb-3 group">
+      {/* Desktop Table Row (Visible on md+) */}
+      <div className="hidden md:contents">
+        <TableRow>
+          <TableCell className="w-[50px]">
+            <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-1 hover:bg-muted rounded transition-colors">
+              <GripVertical className="w-4 h-4 text-muted-foreground" />
+            </button>
+          </TableCell>
+          <TableCell className="w-[80px] font-mono text-xs font-bold text-primary">#{day.order}</TableCell>
+          <TableCell>{new Date(day.date).toLocaleDateString()}</TableCell>
+          <TableCell className="font-semibold">{day.title}</TableCell>
+          <TableCell>
+            <Badge variant="secondary" className="gap-1">
+                <MapPin className="w-3 h-3" /> {day.locations?.length || 0}
+            </Badge>
+          </TableCell>
+          <TableCell className="text-right space-x-2">
+            <Button variant="ghost" size="icon" onClick={() => openEdit(day)} className="h-8 w-8">
+              <Pencil className="w-4 h-4" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={() => deleteDay(day.id)} className="h-8 w-8 text-destructive hover:bg-destructive/10">
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </TableCell>
+        </TableRow>
+      </div>
+
+      {/* Mobile Card (Visible on <md) */}
+      <Card className="md:hidden border-muted-foreground/10 overflow-hidden shadow-sm">
+        <CardContent className="p-4 flex items-center gap-4">
+          <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-2 bg-muted/50 rounded-lg">
+            <GripVertical className="w-5 h-5 text-muted-foreground" />
+          </div>
+          
+          <div className="flex-1 space-y-1">
+            <div className="flex items-center justify-between">
+                <p className="text-[10px] uppercase font-black tracking-widest text-primary">Day {day.order}</p>
+                <p className="text-[10px] font-medium text-muted-foreground">{new Date(day.date).toLocaleDateString()}</p>
+            </div>
+            <h3 className="font-bold text-lg leading-tight">{day.title}</h3>
+            <div className="flex items-center gap-3 pt-1">
+                <Badge variant="outline" className="text-[10px] py-0 h-5 font-bold uppercase tracking-tighter">
+                    {day.locations?.length || 0} Locations
+                </Badge>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Button variant="outline" size="icon" onClick={() => openEdit(day)} className="h-9 w-9 rounded-full shadow-sm">
+              <Pencil className="w-4 h-4" />
+            </Button>
+            <Button variant="outline" size="icon" onClick={() => deleteDay(day.id)} className="h-9 w-9 rounded-full text-destructive shadow-sm">
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
@@ -114,15 +156,12 @@ export default function DaysPage() {
         const newIndex = items.findIndex((i) => i.id === over.id);
         const newArray = arrayMove(items, oldIndex, newIndex);
         
-        // Update order numbers
         const updatedArray = newArray.map((item, idx) => ({
           ...item,
           order: idx + 1,
         }));
 
-        // Send to API
         saveOrder(updatedArray);
-        
         return updatedArray;
       });
     }
@@ -192,70 +231,73 @@ export default function DaysPage() {
   };
 
   return (
-    <div className="container mx-auto py-10">
-      <div className="flex justify-between items-center mb-6">
+    <div className="container px-4 py-8 md:py-12">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold">Manage Days</h1>
-          <p className="text-muted-foreground text-sm">Drag rows to reorder</p>
+          <h1 className="text-4xl font-black tracking-tighter uppercase italic text-primary">Manage Days</h1>
+          <p className="text-muted-foreground text-sm font-medium">Reorder and organize your trip timeline</p>
         </div>
         <Dialog open={isOpen} onOpenChange={(val) => {
             setIsOpen(val);
             if (!val) setEditingDay(null);
         }}>
           <DialogTrigger asChild>
-            <Button onClick={() => setFormData({ title: "", date: "", order: days.length + 1 })}>
+            <Button className="rounded-full shadow-lg h-12 px-6 font-bold uppercase tracking-widest text-xs" onClick={() => setFormData({ title: "", date: "", order: days.length + 1 })}>
               <Plus className="w-4 h-4 mr-2" /> Add Day
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="sm:max-w-md rounded-t-3xl sm:rounded-xl">
             <DialogHeader>
-              <DialogTitle>{editingDay ? "Edit Day" : "Add New Day"}</DialogTitle>
+              <DialogTitle className="text-2xl font-black uppercase italic tracking-tight">{editingDay ? "Edit Day" : "New Day"}</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-6 pt-4">
               <div className="space-y-2">
-                <Label>Title</Label>
+                <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Trip Title</Label>
                 <Input
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   placeholder="e.g. Arrival in Shanghai"
+                  className="h-12 text-lg font-medium bg-muted/30 border-none"
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label>Date</Label>
+                <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Date</Label>
                 <Input
                   type="date"
                   value={formData.date}
                   onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                  className="h-12 bg-muted/30 border-none"
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label>Display Order</Label>
+                <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Sequence Order</Label>
                 <Input
                   type="number"
                   value={formData.order}
                   onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) })}
+                  className="h-12 bg-muted/30 border-none font-mono"
                   required
                 />
               </div>
-              <Button type="submit" className="w-full">
-                {editingDay ? "Update Day" : "Create Day"}
+              <Button type="submit" className="w-full h-14 rounded-2xl text-lg font-bold uppercase tracking-widest shadow-xl shadow-primary/20">
+                {editingDay ? "Update Information" : "Create New Day"}
               </Button>
             </form>
           </DialogContent>
         </Dialog>
       </div>
 
-      <div className="border rounded-lg bg-card">
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-          modifiers={[restrictToVerticalAxis]}
-        >
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+        modifiers={[restrictToVerticalAxis]}
+      >
+        <div className="hidden md:block border rounded-xl overflow-hidden bg-card shadow-sm">
           <Table>
-            <TableHeader>
+            <TableHeader className="bg-muted/50">
               <TableRow>
                 <TableHead className="w-[50px]"></TableHead>
                 <TableHead className="w-[80px]">Order</TableHead>
@@ -271,7 +313,7 @@ export default function DaysPage() {
                 strategy={verticalListSortingStrategy}
               >
                 {days.map((day) => (
-                  <SortableRow
+                  <SortableItem
                     key={day.id}
                     day={day}
                     openEdit={openEdit}
@@ -279,18 +321,35 @@ export default function DaysPage() {
                   />
                 ))}
               </SortableContext>
-              {days.length === 0 && !loading && (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
-                    No days found. Add one to get started.
-                  </TableCell>
-                </TableRow>
-              )}
             </TableBody>
           </Table>
-        </DndContext>
-      </div>
-      <Toaster />
+        </div>
+
+        {/* Mobile View */}
+        <div className="md:hidden space-y-1">
+          <SortableContext
+            items={days.map((d) => d.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            {days.map((day) => (
+              <SortableItem
+                key={day.id}
+                day={day}
+                openEdit={openEdit}
+                deleteDay={deleteDay}
+              />
+            ))}
+          </SortableContext>
+        </div>
+
+        {days.length === 0 && !loading && (
+          <div className="text-center py-20 bg-muted/20 rounded-3xl border-2 border-dashed border-muted-foreground/10">
+            <CalendarIcon className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
+            <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs">No days found</p>
+          </div>
+        )}
+      </DndContext>
+      <Toaster position="top-center" />
     </div>
   );
 }
