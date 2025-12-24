@@ -140,10 +140,11 @@ export default function UploadPage() {
                 </Dialog>
               </div>
               <Select value={selectedDay} onValueChange={setSelectedDay}>
-                <SelectTrigger className={cn("h-12 rounded-xl bg-muted/30 border-none text-base font-medium", !selectedDay && "ring-2 ring-destructive/50 animate-pulse")}>
-                  <SelectValue placeholder="Choose Day" />
+                <SelectTrigger className="h-12 rounded-xl bg-muted/30 border-none text-base font-medium">
+                  <SelectValue placeholder="Automatic (via EXIF)" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl border-none shadow-2xl">
+                  <SelectItem value="null">Automatic (EXIF)</SelectItem>
                   {days.map((day) => (
                     <SelectItem key={day.id} value={day.id} className="h-10">
                       Day {day.order}: {day.title}
