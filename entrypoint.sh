@@ -1,23 +1,30 @@
 #!/bin/sh
 set -e
 
-echo "--- MOOTRIP DEBUG STARTUP ---"
-echo "UID: $(id -u)"
-echo "DB: $DATABASE_URL"
+echo "--- MOOTRIP MINIMAL TEST ---"
+echo "Port: $PORT"
 
-# 1. PERMISSIONS
-if [ -d "/storage" ]; then
-  chown -R 1001:1001 /storage || echo "chown failed"
-fi
+# Create a minimal node server to test connectivity
+cat <<EOF > test-server.js
+const http = require('http');
+const port = process.env.PORT || 3000;
+const server = http.createServer((req, res) => {
+  res.statusCode = 200;
+  res.setHeader('Content-Type', 'text/plain');
+  res.end('Minimal Test Success\n');
+});
+server.listen(port, '0.0.0.0', () => {
+  console.log(\`Server running at http://0.0.0.0:\${port}/\`);
+});
+EOF
 
-# 2. MIGRATIONS (Try as root first to see if it works)
-echo "Running migrations as root..."
-prisma migrate deploy || echo "Root migration failed"
+echo "Starting minimal test server..."
+node test-server.js &
+TEST_PID=$!
 
-# 3. SERVER
+sleep 5
+
 echo "Starting Next.js..."
 export HOSTNAME="0.0.0.0"
-export PORT="3000"
-
-# Running as root for this debug cycle to rule out su-exec issues
+# Don't override PORT if Railway provided one
 exec node server.js
