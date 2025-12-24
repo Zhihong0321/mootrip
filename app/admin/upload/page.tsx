@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 export default function UploadPage() {
   const [days, setDays] = useState<any[]>([]);
@@ -139,7 +140,7 @@ export default function UploadPage() {
                 </Dialog>
               </div>
               <Select value={selectedDay} onValueChange={setSelectedDay}>
-                <SelectTrigger className="h-12 rounded-xl bg-muted/30 border-none text-base font-medium">
+                <SelectTrigger className={cn("h-12 rounded-xl bg-muted/30 border-none text-base font-medium", !selectedDay && "ring-2 ring-destructive/50 animate-pulse")}>
                   <SelectValue placeholder="Choose Day" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl border-none shadow-2xl">

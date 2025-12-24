@@ -20,6 +20,10 @@ export async function POST(req: NextRequest) {
     const dayId = formData.get("dayId") as string;
     let locationId = formData.get("locationId") as string;
 
+    if (locationId === "undefined" || locationId === "null" || locationId === "") {
+        locationId = "";
+    }
+
     if (!fullFile || !metadataStr) {
       return NextResponse.json({ error: "Missing required upload data" }, { status: 400 });
     }
@@ -29,25 +33,48 @@ export async function POST(req: NextRequest) {
     const filename = `${uniqueId}-${originalName}`;
     const thumbFilename = `${uniqueId}-${originalName.split('.')[0]}.webp`;
 
-    // 1. Fallback: Auto-create location if missing but coordinates exist
-    if (!locationId && metadata.latitude && metadata.longitude && dayId) {
-      const geo = await reverseGeocode(metadata.latitude, metadata.longitude);
-      if (geo) {
-        const location = await prisma.location.create({
-          data: {
-            name_en: geo.name_en,
-            latitude: metadata.latitude,
-            longitude: metadata.longitude,
-            dayId: dayId,
-            order: 0,
+    // 1. Fallback: Auto-create location if missing
+    if (!locationId && dayId) {
+      // Option A: Use GPS
+      if (metadata.latitude && metadata.longitude) {
+        const geo = await reverseGeocode(metadata.latitude, metadata.longitude);
+        if (geo) {
+          const location = await prisma.location.create({
+            data: {
+              name_en: geo.name_en,
+              latitude: metadata.latitude,
+              longitude: metadata.longitude,
+              dayId: dayId,
+              order: 0,
+            },
+          });
+          locationId = location.id;
+        }
+      }
+      
+      // Option B: Create/Use "Unsorted" location for that day
+      if (!locationId) {
+        const fallbackLoc = await prisma.location.upsert({
+          where: { 
+            // We don't have a unique constraint on name_en + dayId yet, 
+            // so we'll just find first or create
+            id: `fallback-${dayId}` 
           },
+          update: {},
+          create: {
+            id: `fallback-${dayId}`,
+            name_en: "Unsorted Photos",
+            name_cn: "未分类",
+            dayId: dayId,
+            order: 999,
+          }
         });
-        locationId = location.id;
+        locationId = fallbackLoc.id;
       }
     }
 
     if (!locationId || !dayId) {
-        return NextResponse.json({ error: "Location/Day required" }, { status: 400 });
+        return NextResponse.json({ error: "Please select a Day before uploading." }, { status: 400 });
     }
 
     // 2. Save Files to Disk

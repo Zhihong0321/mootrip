@@ -56,9 +56,12 @@ export function UploadZone({ onUploadComplete, dayId, locationId }: UploadZonePr
           body: formData,
         });
 
-        if (!response.ok) throw new Error("Upload failed");
-
         const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Upload failed");
+        }
+
         onUploadComplete(data);
         setProgress(((i + 1) / acceptedFiles.length) * 100);
       } catch (error) {
