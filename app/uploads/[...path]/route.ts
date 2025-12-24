@@ -8,16 +8,19 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ path: string[] }> }
 ) {
-  const { path: filePathArray } = await params;
-  const filePath = filePathArray.join("/");
-  
-  // Ensure we are only accessing the uploads directory
-  const storagePath = process.env.NODE_ENV === "production" 
-    ? path.join("/storage", "uploads", filePath)
-    : path.join(process.cwd(), "public", "uploads", filePath);
-
   try {
+    const { path: filePathArray } = await params;
+    const filePath = filePathArray.join("/");
+    
+    // Ensure we are only accessing the correct base directory
+    const UPLOADS_BASE = process.env.NODE_ENV === "production" 
+        ? "/storage/uploads" 
+        : path.join(process.cwd(), "public", "uploads");
+
+    const storagePath = path.join(UPLOADS_BASE, filePath);
+
     if (!fs.existsSync(storagePath)) {
+      console.error(`File not found at: ${storagePath}`);
       return new NextResponse("File not found", { status: 404 });
     }
 

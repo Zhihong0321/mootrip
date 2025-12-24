@@ -7,7 +7,9 @@ import { reverseGeocode } from "@/lib/geocode";
 
 export const dynamic = "force-dynamic";
 
-const UPLOADS_DIR = path.join(process.cwd(), "public", "uploads");
+// In production, we write to the persistent volume directly.
+// In development, we write to the public folder.
+const UPLOADS_BASE = process.env.NODE_ENV === "production" ? "/storage/uploads" : path.join(process.cwd(), "public", "uploads");
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,7 +24,6 @@ export async function POST(req: NextRequest) {
     let dayId = formData.get("dayId") as string;
     let locationId = formData.get("locationId") as string;
 
-    // Normalize IDs from client
     if (dayId === "undefined" || dayId === "null" || dayId === "") dayId = "";
     if (locationId === "undefined" || locationId === "null" || locationId === "") locationId = "";
 
@@ -35,12 +36,11 @@ export async function POST(req: NextRequest) {
     const filename = `${uniqueId}-${originalName}`;
     const thumbFilename = `${uniqueId}-${originalName.split('.')[0]}.webp`;
 
-    // 1. SMART DAY INFERENCE (If no dayId provided)
+    // 1. SMART DAY INFERENCE
     if (!dayId && metadata.dateTaken) {
       const date = new Date(metadata.dateTaken);
       const dayDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
       
-      // Find existing day for this date
       const existingDay = await prisma.day.findFirst({
         where: {
           date: {
@@ -53,7 +53,6 @@ export async function POST(req: NextRequest) {
       if (existingDay) {
         dayId = existingDay.id;
       } else {
-        // Auto-create a new Day record for this date
         const allDays = await prisma.day.findMany();
         const newDay = await prisma.day.create({
           data: {
@@ -67,21 +66,16 @@ export async function POST(req: NextRequest) {
     }
 
     if (!dayId) {
-        return NextResponse.json({ error: "Could not determine Day for this photo. Please select one manually." }, { status: 400 });
+        return NextResponse.json({ error: "Could not determine Day for this photo." }, { status: 400 });
     }
 
     // 2. SMART LOCATION INFERENCE
     if (!locationId) {
-      // Try GPS first
       if (metadata.latitude && metadata.longitude) {
         const geo = await reverseGeocode(metadata.latitude, metadata.longitude);
         if (geo) {
-          // Check if this location name already exists for this day
           const existingLoc = await prisma.location.findFirst({
-            where: {
-                dayId: dayId,
-                name_en: geo.name_en
-            }
+            where: { dayId: dayId, name_en: geo.name_en }
           });
 
           if (existingLoc) {
@@ -101,7 +95,6 @@ export async function POST(req: NextRequest) {
         }
       }
       
-      // Fallback to "Unsorted" for the day
       if (!locationId) {
         const fallbackLoc = await prisma.location.upsert({
           where: { id: `unsorted-${dayId}` },
@@ -118,11 +111,18 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Ensure subdirectories exist
+    await Promise.all([
+        fs.mkdir(path.join(UPLOADS_BASE, "full"), { recursive: true }),
+        fs.mkdir(path.join(UPLOADS_BASE, "medium"), { recursive: true }),
+        fs.mkdir(path.join(UPLOADS_BASE, "thumbnails"), { recursive: true }),
+    ]);
+
     // 3. SAVE FILES TO DISK
     await Promise.all([
-      fs.writeFile(path.join(UPLOADS_DIR, "full", filename), Buffer.from(await fullFile.arrayBuffer())),
-      fs.writeFile(path.join(UPLOADS_DIR, "medium", filename), Buffer.from(await mediumFile.arrayBuffer())),
-      fs.writeFile(path.join(UPLOADS_DIR, "thumbnails", thumbFilename), Buffer.from(await thumbFile.arrayBuffer())),
+      fs.writeFile(path.join(UPLOADS_BASE, "full", filename), Buffer.from(await fullFile.arrayBuffer())),
+      fs.writeFile(path.join(UPLOADS_BASE, "medium", filename), Buffer.from(await mediumFile.arrayBuffer())),
+      fs.writeFile(path.join(UPLOADS_BASE, "thumbnails", thumbFilename), Buffer.from(await thumbFile.arrayBuffer())),
     ]);
 
     // 4. SAVE TO DATABASE
