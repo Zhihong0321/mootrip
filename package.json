@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "mkdir -p /storage/uploads/thumbnails /storage/uploads/medium /storage/uploads/full && (rm -rf public/uploads || true) && ln -s /storage/uploads public/uploads && npx prisma migrate deploy && next start -H 0.0.0.0",
+    "start": "bash railway-start.sh",
     "lint": "eslint"
   },
   "dependencies": {
