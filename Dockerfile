@@ -1,8 +1,7 @@
-FROM node:20-slim AS base
+FROM node:20 AS base
 
 # 1. Install dependencies
 FROM base AS deps
-RUN apt-get update && apt-get install -y python3 make g++ openssl libssl-dev
 WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci
@@ -23,11 +22,13 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN apt-get update && apt-get install -y openssl su-exec libc6-compat
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y openssl su-exec
 
 # Install Prisma CLI globally
 RUN npm install -g prisma@7.2.0
 
+# Create user
 RUN groupadd --gid 1001 nodejs && \
     useradd --uid 1001 --gid 1001 --create-home nextjs
 
@@ -40,9 +41,6 @@ COPY --from=builder /app/package.json ./package.json
 # Copy standalone build
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-# Correct permissions for the internal directories
-RUN chown -R nextjs:nodejs /app
 
 RUN chmod +x entrypoint.sh
 
