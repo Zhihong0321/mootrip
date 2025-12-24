@@ -1,30 +1,25 @@
 #!/bin/sh
 set -e
 
-echo "--- MOOTRIP MINIMAL TEST ---"
-echo "Port: $PORT"
+echo "--- MOOTRIP PRODUCTION STARTUP (DEBIAN) ---"
 
-# Create a minimal node server to test connectivity
-cat <<EOF > test-server.js
-const http = require('http');
-const port = process.env.PORT || 3000;
-const server = http.createServer((req, res) => {
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'text/plain');
-  res.end('Minimal Test Success\n');
-});
-server.listen(port, '0.0.0.0', () => {
-  console.log(\`Server running at http://0.0.0.0:\${port}/\`);
-});
-EOF
+# 1. SETUP PERSISTENCE & PERMISSIONS
+if [ -d "/storage" ]; then
+  echo "Setting up storage..."
+  mkdir -p /storage/uploads/thumbnails /storage/uploads/medium /storage/uploads/full
+  chown -R 1001:1001 /storage
+  rm -rf public/uploads
+  ln -s /storage/uploads public/uploads
+else
+  mkdir -p public/uploads/thumbnails public/uploads/medium public/uploads/full
+fi
 
-echo "Starting minimal test server..."
-node test-server.js &
-TEST_PID=$!
+# 2. RUN MIGRATIONS
+echo "Running migrations..."
+npx prisma migrate deploy
 
-sleep 5
-
+# 3. START SERVER
 echo "Starting Next.js..."
 export HOSTNAME="0.0.0.0"
-# Don't override PORT if Railway provided one
+# Use root for this first Debian attempt to confirm it works
 exec node server.js

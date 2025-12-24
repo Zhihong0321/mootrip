@@ -1,49 +1,42 @@
-FROM node:20-alpine AS base
+FROM node:20-slim AS base
 
-# Install dependencies only when needed
+# 1. Install dependencies
 FROM base AS deps
-RUN apk add --no-cache libc6-compat python3 make g++
+RUN apt-get update && apt-get install -y python3 make g++ openssl libssl-dev
 WORKDIR /app
-
-# Install dependencies
 COPY package.json package-lock.json* ./
 RUN npm ci
 
-# Rebuild the source code only when needed
+# 2. Build
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-
-# Generate Prisma client
 RUN npx prisma generate
-
-# Build Next.js
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
-# Production image, copy all the files and run next
+# 3. Production Runner
 FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Prisma needs openssl, su-exec, and libc6-compat for native modules
-RUN apk add --no-cache openssl su-exec libc6-compat
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y openssl su-exec
 
-# Install Prisma CLI globally in the runner to ensure it's available for migrations
+# Install Prisma CLI globally
 RUN npm install -g prisma@7.2.0
 
-RUN addgroup -S -g 1001 nodejs
-RUN adduser -S -u 1001 -G nodejs nextjs
+# Create user
+RUN groupadd --gid 1001 nodejs && \
+    useradd --uid 1001 --gid 1001 --create-home nextjs
 
 COPY --from=builder /app/public ./public
-
-# Set the correct permission for prerender cache and public folder
 RUN mkdir .next && chown -R nextjs:nodejs .next public
 
-# Automatically leverage output traces to reduce image size
+# Next.js Standalone
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
@@ -51,13 +44,10 @@ COPY --from=builder --chown=nextjs:nodejs /app/entrypoint.sh ./entrypoint.sh
 COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 
-# Ensure the entrypoint script is executable
 RUN chmod +x entrypoint.sh
 
 EXPOSE 3000
-
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# Use the entrypoint script to run migrations before starting the server
 ENTRYPOINT ["./entrypoint.sh"]
