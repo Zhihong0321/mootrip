@@ -25,7 +25,7 @@ export function UploadZone({ onUploadComplete, dayId, locationId }: UploadZonePr
     if ('wakeLock' in navigator) {
       try {
         wakeLock = await (navigator as any).wakeLock.request('screen');
-      } catch (err) {
+      } catch (err: any) {
         console.error(`${err.name}, ${err.message}`);
       }
     }

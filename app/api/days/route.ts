@@ -4,7 +4,11 @@ import { prisma } from "@/lib/prisma";
 export async function GET() {
   const days = await prisma.day.findMany({
     orderBy: { order: "asc" },
-    include: { locations: true },
+    include: {
+      locations: {
+        orderBy: { order: "asc" },
+      },
+    },
   });
   return NextResponse.json(days);
 }
