@@ -19,6 +19,17 @@ export function UploadZone({ onUploadComplete, dayId, locationId }: UploadZonePr
   const [progress, setProgress] = useState(0);
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    let wakeLock: any = null;
+    
+    // Request Wake Lock to prevent phone from sleeping during upload
+    if ('wakeLock' in navigator) {
+      try {
+        wakeLock = await (navigator as any).wakeLock.request('screen');
+      } catch (err) {
+        console.error(`${err.name}, ${err.message}`);
+      }
+    }
+
     setUploading(true);
     setProgress(0);
 
@@ -26,12 +37,10 @@ export function UploadZone({ onUploadComplete, dayId, locationId }: UploadZonePr
       const file = acceptedFiles[i];
       
       try {
-        // 1. Process Client-Side
         setProcessing(true);
         const processed = await processImageClient(file);
         setProcessing(false);
 
-        // 2. Prepare FormData
         const formData = new FormData();
         formData.append("full", processed.full, `full-${file.name}`);
         formData.append("medium", processed.medium, `medium-${file.name}`);
@@ -42,7 +51,6 @@ export function UploadZone({ onUploadComplete, dayId, locationId }: UploadZonePr
         if (dayId) formData.append("dayId", dayId);
         if (locationId) formData.append("locationId", locationId);
 
-        // 3. Upload Optimized Files
         const response = await fetch("/api/upload", {
           method: "POST",
           body: formData,
@@ -62,6 +70,13 @@ export function UploadZone({ onUploadComplete, dayId, locationId }: UploadZonePr
 
     setUploading(false);
     toast.success("Upload session complete");
+
+    // Release Wake Lock
+    if (wakeLock) {
+      wakeLock.release().then(() => {
+        wakeLock = null;
+      });
+    }
   }, [dayId, locationId, onUploadComplete]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
