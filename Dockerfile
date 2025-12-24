@@ -32,8 +32,8 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # Prisma needs openssl
 RUN apk add --no-cache openssl
 
-RUN addgroup --system --uid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN addgroup -S -g 1001 nodejs
+RUN adduser -S -u 1001 -G nodejs nextjs
 
 COPY --from=builder /app/public ./public
 
