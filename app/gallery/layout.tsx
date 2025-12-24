@@ -2,6 +2,8 @@ import React from "react";
 import { prisma } from "@/lib/prisma";
 import { DayNavigator } from "@/components/DayNavigator";
 
+export const dynamic = "force-dynamic";
+
 export default async function GalleryLayout({
   children,
 }: {

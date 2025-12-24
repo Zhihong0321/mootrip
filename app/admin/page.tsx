@@ -6,6 +6,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminDashboard() {
   const [photoCount, dayCount, locationCount, recentPhotos] = await Promise.all([
     prisma.photo.count(),
