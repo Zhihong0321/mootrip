@@ -32,6 +32,9 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # Prisma needs openssl, su-exec, and libc6-compat for native modules
 RUN apk add --no-cache openssl su-exec libc6-compat
 
+# Install Prisma CLI globally in the runner to ensure it's available for migrations
+RUN npm install -g prisma@7.2.0
+
 RUN addgroup -S -g 1001 nodejs
 RUN adduser -S -u 1001 -G nodejs nextjs
 

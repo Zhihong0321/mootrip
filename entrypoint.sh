@@ -22,8 +22,8 @@ fi
 
 # 2. RUN MIGRATIONS (as nextjs)
 echo "Running Prisma migrations..."
-# Use su-exec to run migrations as the app user to ensure file ownership is correct
-su-exec nextjs ./node_modules/.bin/prisma migrate deploy
+# Use global prisma CLI installed in the runner
+su-exec nextjs prisma migrate deploy
 echo "Migrations applied."
 
 # 3. START SERVER (as nextjs)
