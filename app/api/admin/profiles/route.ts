@@ -49,6 +49,35 @@ export async function POST(req: Request) {
   }
 }
 
+export async function PUT(req: Request) {
+  try {
+    await requireAdmin();
+    const data = await req.json();
+    const { id, name, accessCode, role } = data;
+
+    // Check if code taken by another profile
+    const existing = await prisma.profile.findFirst({
+      where: { 
+        accessCode,
+        NOT: { id }
+      },
+    });
+
+    if (existing) {
+      return NextResponse.json({ error: "Access code already taken" }, { status: 400 });
+    }
+
+    const profile = await prisma.profile.update({
+      where: { id },
+      data: { name, accessCode, role },
+    });
+
+    return NextResponse.json(profile);
+  } catch (error) {
+    return NextResponse.json({ error: "Failed to update profile" }, { status: 500 });
+  }
+}
+
 export async function DELETE(req: Request) {
   try {
     await requireAdmin();

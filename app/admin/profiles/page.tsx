@@ -18,6 +18,7 @@ export default function ProfilesPage() {
   const [newCode, setNewCode] = useState("");
   const [newRole, setNewRole] = useState("user");
   const [submitting, setSubmitting] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const fetchProfiles = () => {
     fetch("/api/admin/profiles")
@@ -43,25 +44,47 @@ export default function ProfilesPage() {
     setSubmitting(true);
     try {
       const res = await fetch("/api/admin/profiles", {
-        method: "POST",
+        method: editingId ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newName, accessCode: newCode, role: newRole }),
+        body: JSON.stringify({ 
+          id: editingId,
+          name: newName, 
+          accessCode: newCode, 
+          role: newRole 
+        }),
       });
       
       const data = await res.json();
       if (res.ok) {
-        toast.success("Profile created");
+        toast.success(editingId ? "Profile updated" : "Profile created");
         setNewName("");
         setNewCode("");
+        setNewRole("user");
+        setEditingId(null);
         fetchProfiles();
       } else {
         toast.error(data.error);
       }
     } catch (error) {
-      toast.error("Failed to create profile");
+      toast.error("Failed to save profile");
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleEdit = (profile: any) => {
+    setEditingId(profile.id);
+    setNewName(profile.name);
+    setNewCode(profile.accessCode);
+    setNewRole(profile.role);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setNewName("");
+    setNewCode("");
+    setNewRole("user");
   };
 
   const handleDelete = async (id: string) => {
@@ -99,9 +122,9 @@ export default function ProfilesPage() {
         <Card className="md:col-span-1 h-fit border-none shadow-xl shadow-primary/5 bg-card/50 backdrop-blur-sm border-l-4 border-l-primary">
           <CardHeader>
             <CardTitle className="text-lg font-bold flex items-center gap-2">
-              <Plus className="w-5 h-5 text-primary" /> New Profile
+              <Plus className="w-5 h-5 text-primary" /> {editingId ? "Edit Profile" : "New Profile"}
             </CardTitle>
-            <CardDescription>Create a new access code for a family member.</CardDescription>
+            <CardDescription>{editingId ? "Update existing profile information." : "Create a new access code for a family member."}</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleCreate} className="space-y-4">
@@ -133,9 +156,16 @@ export default function ProfilesPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <Button type="submit" className="w-full font-bold uppercase" disabled={submitting}>
-                {submitting ? "Creating..." : "Create Profile"}
-              </Button>
+              <div className="flex gap-2">
+                <Button type="submit" className="flex-1 font-bold uppercase" disabled={submitting}>
+                  {submitting ? "Saving..." : editingId ? "Update Profile" : "Create Profile"}
+                </Button>
+                {editingId && (
+                  <Button type="button" variant="outline" onClick={cancelEdit} disabled={submitting}>
+                    Cancel
+                  </Button>
+                )}
+              </div>
             </form>
           </CardContent>
         </Card>
@@ -157,7 +187,7 @@ export default function ProfilesPage() {
                         <th className="p-3 font-bold uppercase text-[10px] tracking-wider text-muted-foreground">Role</th>
                         <th className="p-3 font-bold uppercase text-[10px] tracking-wider text-muted-foreground">Code</th>
                         <th className="p-3 font-bold uppercase text-[10px] tracking-wider text-muted-foreground text-center">Photos</th>
-                        <th className="p-3 font-bold uppercase text-[10px] tracking-wider text-muted-foreground text-right">Action</th>
+                        <th className="p-3 font-bold uppercase text-[10px] tracking-wider text-muted-foreground text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -173,7 +203,15 @@ export default function ProfilesPage() {
                           </td>
                           <td className="p-3 font-mono text-muted-foreground">{profile.accessCode}</td>
                           <td className="p-3 text-center font-bold">{profile._count.photos}</td>
-                          <td className="p-3 text-right">
+                          <td className="p-3 text-right flex justify-end gap-1">
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8 text-primary hover:bg-primary/10"
+                              onClick={() => handleEdit(profile)}
+                            >
+                              <User className="w-4 h-4" />
+                            </Button>
                             <Button 
                               variant="ghost" 
                               size="icon" 
