@@ -5,6 +5,7 @@ import path from "path";
 import fs from "fs/promises";
 import { reverseGeocode } from "@/lib/geocode";
 import crypto from "crypto";
+import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,13 @@ async function calculateHash(file: File) {
 
 export async function POST(req: NextRequest) {
   try {
+    const cookieStore = await cookies();
+    const uploaderId = cookieStore.get("profile_session")?.value;
+
+    if (!uploaderId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const formData = await req.formData();
     
     const fullFile = formData.get("full") as File;
@@ -172,6 +180,7 @@ export async function POST(req: NextRequest) {
         dateTaken: new Date(metadata.dateTaken),
         locationId: locationId,
         order: 0,
+        uploaderId: uploaderId,
       },
     });
 

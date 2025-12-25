@@ -2,10 +2,12 @@
 
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Settings as SettingsIcon, Shield, Cloud, Info, ScrollText, Calendar, Loader2, Trash2, HardDrive, FileWarning } from "lucide-react";
+import { Settings as SettingsIcon, Shield, Cloud, Info, ScrollText, Calendar, Loader2, Trash2, HardDrive, FileWarning, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
@@ -20,7 +22,22 @@ export default function SettingsPage() {
   const [scanning, setScanning] = useState(false);
   const [cleaning, setCleaning] = useState(false);
 
+  // Profile State
+  const [profile, setProfile] = useState<any>(null);
+  const [editingName, setEditingName] = useState(false);
+  const [newName, setNewName] = useState("");
+
   useEffect(() => {
+    // Fetch profile
+    fetch("/api/admin/profiles/me")
+        .then(res => res.json())
+        .then(data => {
+            if (!data.error) {
+                setProfile(data);
+                setNewName(data.name);
+            }
+        });
+
     fetch("/api/settings")
       .then(res => res.json())
       .then(data => {
@@ -98,6 +115,28 @@ export default function SettingsPage() {
       toast.error("Cleanup failed");
     } finally {
       setCleaning(false);
+    }
+  };
+
+  const handleUpdateName = async () => {
+    if (!newName.trim()) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/admin/profiles/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newName }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setProfile(updated);
+        setEditingName(false);
+        toast.success("Profile updated");
+      }
+    } catch (e) {
+      toast.error("Failed to update profile");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -251,13 +290,45 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-none shadow-xl shadow-primary/5 bg-card/50 backdrop-blur-sm">
+        {/* PROFILE CARD */}
+        <Card className="border-none shadow-xl shadow-primary/5 bg-card/50 backdrop-blur-sm border-l-4 border-l-blue-500">
           <CardHeader>
             <CardTitle className="text-lg font-bold flex items-center gap-2">
-              <Shield className="w-5 h-5 text-primary" /> Application Info
+              <Shield className="w-5 h-5 text-blue-500" /> Profile & System
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {profile && (
+                <div className="p-4 bg-primary/5 rounded-xl border border-primary/10 space-y-4 mb-2">
+                    <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block">Active Profile</span>
+                            {editingName ? (
+                                <div className="flex gap-2 mt-1">
+                                    <Input 
+                                        value={newName} 
+                                        onChange={(e) => setNewName(e.target.value)}
+                                        className="h-8 text-sm font-bold"
+                                        autoFocus
+                                    />
+                                    <Button size="sm" onClick={handleUpdateName} disabled={saving} className="h-8 px-3 font-bold">Save</Button>
+                                    <Button size="sm" variant="ghost" onClick={() => {setEditingName(false); setNewName(profile.name);}} className="h-8 px-3 font-bold">Cancel</Button>
+                                </div>
+                            ) : (
+                                <h3 className="text-xl font-black tracking-tighter italic uppercase text-primary flex items-center gap-2">
+                                    {profile.name}
+                                    <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground" onClick={() => setEditingName(true)}>
+                                        <RefreshCw className="w-3 h-3" />
+                                    </Button>
+                                </h3>
+                            )}
+                        </div>
+                        <Badge variant="outline" className="font-black uppercase tracking-widest text-[10px]">
+                            {profile.role}
+                        </Badge>
+                    </div>
+                </div>
+            )}
             <div className="flex justify-between items-center py-2 border-b border-dashed">
                 <span className="text-xs font-black uppercase tracking-widest text-muted-foreground">Environment</span>
                 <span className="text-sm font-bold text-green-500 uppercase tracking-tighter">Production (Railway)</span>

@@ -48,9 +48,21 @@ model Photo {
   locationId  String
   location    Location @relation(fields: [locationId], references: [id])
   order       Int
+  uploaderId  String?
+  uploader    Profile? @relation(fields: [uploaderId], references: [id])
 
   @@index([locationId])
   @@index([order])
+  @@index([uploaderId])
+}
+
+model Profile {
+  id          String   @id @default(cuid())
+  name        String
+  accessCode  String   @unique
+  role        String   @default("user") // "admin" or "user"
+  createdAt   DateTime @default(now())
+  photos      Photo[]
 }
 
 model Log {

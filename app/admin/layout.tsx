@@ -3,8 +3,9 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Upload, Calendar, MapPin, Image as ImageIcon } from "lucide-react";
+import { LayoutDashboard, Upload, Calendar, MapPin, Image as ImageIcon, Users, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 export default function AdminLayout({
   children,
@@ -12,6 +13,12 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/login");
+  };
 
   const navItems = [
     { href: "/admin", label: "Home", icon: LayoutDashboard },
@@ -19,6 +26,7 @@ export default function AdminLayout({
     { href: "/admin/photos", label: "Photos", icon: ImageIcon },
     { href: "/admin/days", label: "Days", icon: Calendar },
     { href: "/admin/locations", label: "Spots", icon: MapPin },
+    { href: "/admin/profiles", label: "Profiles", icon: Users },
   ];
 
   return (
@@ -49,6 +57,15 @@ export default function AdminLayout({
             );
           })}
         </nav>
+        <div className="p-4 border-t">
+          <button 
+            onClick={handleLogout}
+            className="flex items-center space-x-3 px-3 py-2 rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors w-full"
+          >
+            <LogOut className="w-5 h-5" />
+            <span className="font-medium">Logout</span>
+          </button>
+        </div>
       </aside>
 
       {/* Main Content */}

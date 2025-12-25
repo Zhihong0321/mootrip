@@ -31,7 +31,17 @@ async function main() {
     },
   });
 
-  console.log({ day1, loc1 });
+  const admin = await prisma.profile.upsert({
+    where: { accessCode: "admin888" },
+    update: {},
+    create: {
+      name: "Superadmin",
+      accessCode: "admin888",
+      role: "admin",
+    },
+  });
+
+  console.log({ day1, loc1, admin });
 }
 
 main()

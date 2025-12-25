@@ -23,6 +23,12 @@ export async function GET(req: Request) {
         include: {
           day: true
         }
+      },
+      uploader: {
+        select: {
+          name: true,
+          role: true
+        }
       }
     },
     orderBy: settings?.autoDateMode ? {

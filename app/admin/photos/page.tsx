@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { MapPin, Calendar, Trash2, ExternalLink, RefreshCw, Filter } from "lucide-react";
+import { MapPin, Calendar, Trash2, ExternalLink, RefreshCw, Filter, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function PhotoManagementPage() {
@@ -150,6 +150,15 @@ export default function PhotoManagementPage() {
                 </div>
 
                 <div className="flex items-center justify-between pt-2">
+                    <div className="flex flex-col">
+                        <span className="text-[8px] font-black uppercase tracking-[0.2em] text-muted-foreground">Uploader</span>
+                        <div className="flex items-center gap-1 mt-0.5">
+                            <User className="w-2.5 h-2.5 text-primary" />
+                            <span className="text-[10px] font-bold text-foreground">
+                                {photo.uploader?.name || "System"}
+                            </span>
+                        </div>
+                    </div>
                     <div className="flex flex-col">
                         <span className="text-[8px] font-black uppercase tracking-[0.2em] text-muted-foreground">Original Data</span>
                         <div className="flex gap-2 mt-0.5">
