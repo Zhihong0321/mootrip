@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Masonry from "react-masonry-css";
 import Image from "next/image";
 import { Skeleton } from "@/components/ui/skeleton";
-import "./MasonryGrid.css";
 
 interface MasonryGridProps {
   photos: any[];
@@ -15,20 +14,29 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export function MasonryGrid({ photos, onPhotoClick }: MasonryGridProps) {
   const [loadedImages, setLoadedImages] = useState<Record<string, boolean>>({});
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const breakpointColumnsObj = {
     default: 4,
+    1400: 4,
     1100: 3,
     768: 2,
-    480: 2
+    500: 2
   };
 
+  if (!mounted) return null;
+
   return (
-    <Masonry
-      breakpointCols={breakpointColumnsObj}
-      className="my-masonry-grid"
-      columnClassName="my-masonry-grid_column"
-    >
+    <div className="w-full">
+      <Masonry
+        breakpointCols={breakpointColumnsObj}
+        className="my-masonry-grid"
+        columnClassName="my-masonry-grid_column"
+      >
       <AnimatePresence>
         {photos.map((photo, index) => (
           <motion.div 
@@ -65,6 +73,7 @@ export function MasonryGrid({ photos, onPhotoClick }: MasonryGridProps) {
           </motion.div>
         ))}
       </AnimatePresence>
-    </Masonry>
+      </Masonry>
+    </div>
   );
 }

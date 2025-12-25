@@ -123,3 +123,20 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Masonry Grid Global Styles - react-masonry-css requirement */
+.my-masonry-grid {
+  display: flex !important;
+  width: auto;
+  margin-left: -20px; /* gutter size offset */
+}
+.my-masonry-grid_column {
+  padding-left: 20px; /* gutter size */
+  background-clip: padding-box;
+  flex: 1 1 0% !important; /* Ensure columns grow and share space */
+}
+
+/* Style your items */
+.my-masonry-grid_column > div {
+  margin-bottom: 20px;
+}
