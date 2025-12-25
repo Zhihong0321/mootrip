@@ -19,15 +19,15 @@ export function MasonryGrid({ photos, onPhotoClick }: MasonryGridProps) {
   const breakpointColumnsObj = {
     default: 4,
     1100: 3,
-    700: 2,
-    500: 2
+    768: 2,
+    480: 2
   };
 
   return (
     <Masonry
       breakpointCols={breakpointColumnsObj}
-      className="flex -ml-5 w-auto"
-      columnClassName="pl-5 bg-clip-padding"
+      className="my-masonry-grid"
+      columnClassName="my-masonry-grid_column"
     >
       <AnimatePresence>
         {photos.map((photo, index) => (
