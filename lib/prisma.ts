@@ -3,8 +3,14 @@ import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
-const dbPath = process.env.DATABASE_URL?.replace("file:", "") || "dev.db";
-const adapter = new PrismaBetterSqlite3({ url: dbPath });
+let adapter;
+try {
+  const dbPath = process.env.DATABASE_URL?.replace("file:", "") || "dev.db";
+  // Only use adapter if we can
+  adapter = new PrismaBetterSqlite3({ url: dbPath });
+} catch (e) {
+  console.warn("Failed to initialize PrismaBetterSqlite3 adapter, using default engine:", e);
+}
 
 export const prisma =
   globalForPrisma.prisma ||

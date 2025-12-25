@@ -33,6 +33,14 @@ npm run dev
 npm run build
 ```
 
+## Production Deployment (Railway/Docker)
+
+For production environments, ensure you have a persistent volume mounted at `/storage`. The application is configured to look for the SQLite database at `/storage/dev.db` when the `/storage` directory is present.
+
+### Important Notes:
+- **Persistence**: The SQLite database MUST be stored in a persistent volume (e.g., Railway's Attached Storage) to avoid data loss during deployments.
+- **Environment Variables**: The startup script (`railway-start.sh`) automatically sets `DATABASE_URL` to point to `/storage/dev.db` if the volume is detected.
+
 ## Documentation
 - [User Guide](USER_GUIDE.md)
 - [API Reference](API.md)

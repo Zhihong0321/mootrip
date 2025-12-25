@@ -5,8 +5,16 @@ echo "--- RAILWAY STARTUP (PORT 8080) ---"
 if [ -d "/storage" ]; then
   echo "Ensuring storage directories..."
   mkdir -p /storage/uploads/thumbnails /storage/uploads/medium /storage/uploads/full
-  # We use an API route proxy for /uploads, so no symlink needed in production
-  # This avoids issues with Next.js not following symlinks for static files
+  
+  # Set Database URL to use persistent storage
+  export DATABASE_URL="file:/storage/dev.db"
+  echo "Using persistent database at /storage/dev.db"
+else
+  # Fallback for local/ephemeral
+  if [ -z "$DATABASE_URL" ]; then
+    export DATABASE_URL="file:./dev.db"
+  fi
+  echo "Using database at $DATABASE_URL"
 fi
 
 # 2. RUN MIGRATIONS

@@ -530,6 +530,29 @@ docs(readme): add setup instructions
 | 12. Testing | Completed | Local build verified successfully |
 | 13. Deployment | Completed | Docker standalone + Railway Persistence |
 | 14. Documentation | Completed | README + User Guide + API docs |
+| 15. Production Fixes | Completed | Persistent DB Path + Error Handling |
+
+---
+
+## Milestone 15: Critical Production Fixes
+**Status:** Completed
+
+### Tasks
+1. **Fix Database Persistence:**
+   - Problem: SQLite `dev.db` was defaulting to the ephemeral project root in Docker/Railway.
+   - Fix: Modified `railway-start.sh` to explicitly set `DATABASE_URL="file:/storage/dev.db"` to use the attached persistent volume.
+   - Updated `lib/prisma.ts` to safely handle `DATABASE_URL` and log initialization.
+2. **Implement Error Handling in Server Components:**
+   - Problem: Database or API failures caused 500 "Internal Server Error" (masked in production).
+   - Fix: Added `try-catch` blocks in `GalleryLayout` and `fetch` `.catch` in `DayDetailPage` to ensure the UI fails gracefully instead of crashing.
+3. **Align Prisma 7 Configuration:**
+   - Problem: Prisma 7 removed `url` from `schema.prisma`.
+   - Fix: Verified `prisma.config.ts` correctly handles connection strings for CLI tools.
+
+### Checkpoints
+- [x] `DATABASE_URL` correctly points to `/storage/dev.db` in production.
+- [x] App builds and starts without crashing if DB is empty/unreachable.
+- [x] UI handles missing data with appropriate loading/empty states.
 
 ---
 
