@@ -34,7 +34,7 @@ export default function WelcomePage() {
             <span className="text-6xl md:text-[120px] font-black tracking-[calc(-0.02em)] italic uppercase leading-[0.9] block">
               SUZHOU
             </span>
-            <span className="text-primary tracking-[0.2em] font-black text-4xl md:text-[60px] block mt-4 drop-shadow-none">
+            <span className="text-white tracking-[0.3em] font-black text-4xl md:text-[60px] block mt-6 drop-shadow-[0_0_30px_rgba(255,255,255,0.5)]">
               2025
             </span>
           </h1>
