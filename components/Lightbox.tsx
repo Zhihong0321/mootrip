@@ -25,9 +25,8 @@ export function Lightbox({ photo, onClose, onNext, onPrev }: LightboxProps) {
 
   // Handle Android Back Button
   useEffect(() => {
-    if (!photo) return;
-
     // Push a state so back button can be intercepted
+    // Only do this once when the lightbox opens
     window.history.pushState({ lightbox: true }, "");
 
     const handlePopState = (e: PopStateEvent) => {
@@ -50,7 +49,7 @@ export function Lightbox({ photo, onClose, onNext, onPrev }: LightboxProps) {
         window.history.back();
       }
     };
-  }, [photo?.id, onClose]);
+  }, [onClose]); // Removed photo?.id dependency to prevent history stack changes on navigation
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
