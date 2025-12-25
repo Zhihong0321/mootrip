@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Settings as SettingsIcon, Shield, Cloud, Info, ScrollText, Calendar, Loader2 } from "lucide-react";
+import { Settings as SettingsIcon, Shield, Cloud, Info, ScrollText, Calendar, Loader2, Trash2, HardDrive, FileWarning } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -14,6 +14,11 @@ export default function SettingsPage() {
   const [settings, setSettings] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  // Storage Diagnostics State
+  const [storageData, setStorageData] = useState<any>(null);
+  const [scanning, setScanning] = useState(false);
+  const [cleaning, setCleaning] = useState(false);
 
   useEffect(() => {
     fetch("/api/settings")
@@ -50,6 +55,51 @@ export default function SettingsPage() {
   };
 
   const toggleAutoDateMode = () => updateSetting("autoDateMode", !settings.autoDateMode);
+
+  const scanStorage = async () => {
+    setScanning(true);
+    try {
+      const res = await fetch("/api/admin/storage");
+      const data = await res.json();
+      setStorageData(data);
+      if (data.orphans.length === 0) {
+        toast.success("Storage is clean! No orphaned files found.");
+      } else {
+        toast.warning(`Found ${data.orphans.length} orphaned files.`);
+      }
+    } catch (e) {
+      toast.error("Scan failed");
+    } finally {
+      setScanning(false);
+    }
+  };
+
+  const cleanOrphans = async () => {
+    if (!storageData?.orphans?.length) return;
+    if (!confirm(`Permanently delete ${storageData.orphans.length} files? This cannot be undone.`)) return;
+
+    setCleaning(true);
+    try {
+      const filesToDelete = storageData.orphans.map((o: any) => o.path);
+      const res = await fetch("/api/admin/storage", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ files: filesToDelete }),
+      });
+      const result = await res.json();
+      
+      if (result.success) {
+        toast.success(`Deleted ${result.deletedCount} files, freed ${(result.freedSpace / 1024 / 1024).toFixed(2)} MB`);
+        scanStorage(); // Refresh
+      } else {
+        throw new Error();
+      }
+    } catch (e) {
+      toast.error("Cleanup failed");
+    } finally {
+      setCleaning(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -117,6 +167,87 @@ export default function SettingsPage() {
                   </p>
                </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* STORAGE DIAGNOSTICS */}
+        <Card className="border-none shadow-xl shadow-primary/5 bg-card/50 backdrop-blur-sm border-l-4 border-l-orange-500">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <CardTitle className="text-lg font-bold flex items-center gap-2">
+                  <HardDrive className="w-5 h-5 text-orange-500" /> Storage Diagnostics
+                </CardTitle>
+                <CardDescription>
+                  Scan persistent storage for orphaned files (files not linked to any database record).
+                </CardDescription>
+              </div>
+              <Button 
+                variant="outline"
+                size="sm"
+                onClick={scanStorage}
+                disabled={scanning || cleaning}
+                className="font-bold uppercase tracking-tighter"
+              >
+                {scanning ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <HardDrive className="w-4 h-4 mr-2" />}
+                {scanning ? "Scanning..." : "Scan Storage"}
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {storageData && (
+                <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="p-3 bg-muted/30 rounded-lg">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block mb-1">Total Usage</span>
+                            <span className="text-2xl font-black tracking-tighter">{(storageData.totalSize / 1024 / 1024).toFixed(2)} MB</span>
+                        </div>
+                        <div className="p-3 bg-muted/30 rounded-lg">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block mb-1">Total Files</span>
+                            <span className="text-2xl font-black tracking-tighter">{storageData.fileCount}</span>
+                        </div>
+                    </div>
+
+                    {storageData.orphans.length > 0 ? (
+                        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 space-y-4">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2 text-red-500">
+                                    <FileWarning className="w-5 h-5" />
+                                    <span className="font-bold">Found {storageData.orphans.length} Orphans ({(storageData.orphans.reduce((acc:any, curr:any) => acc + curr.size, 0) / 1024 / 1024).toFixed(2)} MB)</span>
+                                </div>
+                                <Button 
+                                    variant="destructive" 
+                                    size="sm"
+                                    onClick={cleanOrphans}
+                                    disabled={cleaning}
+                                >
+                                    {cleaning ? "Cleaning..." : "Clean All Orphans"}
+                                </Button>
+                            </div>
+                            
+                            <div className="h-40 rounded border bg-background/50 overflow-auto">
+                                <div className="p-2 space-y-1">
+                                    {storageData.orphans.map((o: any, i: number) => (
+                                        <div key={i} className="flex justify-between text-xs py-1 border-b border-dashed last:border-0">
+                                            <span className="font-mono text-muted-foreground truncate max-w-[70%]">{o.displayPath}</span>
+                                            <span className="font-medium">{(o.size / 1024).toFixed(1)} KB</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="text-center py-6 text-muted-foreground bg-green-500/5 rounded-lg border border-green-500/10">
+                            <p className="text-sm font-medium text-green-600">Storage is clean. No anomalies detected.</p>
+                        </div>
+                    )}
+                </div>
+            )}
+            {!storageData && (
+                 <div className="text-center py-8 text-muted-foreground border border-dashed rounded-lg">
+                    <p className="text-sm">Click "Scan Storage" to analyze disk usage.</p>
+                 </div>
+            )}
           </CardContent>
         </Card>
 
