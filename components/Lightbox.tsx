@@ -18,6 +18,35 @@ export function Lightbox({ photo, onClose, onNext, onPrev }: LightboxProps) {
   const startDistance = useRef<number>(0);
   const initialZoom = useRef<number>(1);
 
+  // Handle Android Back Button
+  useEffect(() => {
+    if (!photo) return;
+
+    // Push a state so back button can be intercepted
+    window.history.pushState({ lightbox: true }, "");
+
+    const handlePopState = (e: PopStateEvent) => {
+      if (zoom > 1) {
+        // If zoomed, reset zoom and push state back so lightbox stays open
+        setZoom(1);
+        window.history.pushState({ lightbox: true }, "");
+      } else {
+        // If not zoomed, close lightbox
+        onClose();
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+      // Clean up state if closing manually via button
+      if (window.history.state?.lightbox) {
+        window.history.back();
+      }
+    };
+  }, [photo, zoom, onClose]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
