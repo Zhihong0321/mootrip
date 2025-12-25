@@ -75,7 +75,14 @@ export function UploadZone({ onUploadComplete, dayId, locationId }: UploadZonePr
           throw new Error(data.error || "Upload failed");
         }
 
-        onUploadComplete(data);
+        if (data.skipped) {
+          toast.info(`Skipped ${file.name}: Duplicate detected`, {
+            description: "This photo already exists in the gallery."
+          });
+        } else {
+          onUploadComplete(data);
+        }
+        
         setProgress(((i + 1) / acceptedFiles.length) * 100);
       } catch (error: any) {
         console.error(error);

@@ -38,6 +38,7 @@ model Location {
 model Photo {
   id          String   @id @default(cuid())
   filename    String
+  hash        String?  @unique
   thumbnail   String
   medium      String
   full        String

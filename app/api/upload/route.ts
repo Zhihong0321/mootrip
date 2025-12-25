@@ -4,12 +4,18 @@ import { v4 as uuidv4 } from "uuid";
 import path from "path";
 import fs from "fs/promises";
 import { reverseGeocode } from "@/lib/geocode";
+import crypto from "crypto";
 
 export const dynamic = "force-dynamic";
 
 // In production, we write to the persistent volume directly.
 // In development, we write to the public folder.
 const UPLOADS_BASE = process.env.NODE_ENV === "production" ? "/storage/uploads" : path.join(process.cwd(), "public", "uploads");
+
+async function calculateHash(file: File) {
+  const buffer = Buffer.from(await file.arrayBuffer());
+  return crypto.createHash("sha256").update(buffer).digest("hex");
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -29,6 +35,20 @@ export async function POST(req: NextRequest) {
 
     if (!fullFile || !metadataStr) {
       return NextResponse.json({ error: "Missing required upload data" }, { status: 400 });
+    }
+
+    // Deduplication check
+    const fileHash = await calculateHash(fullFile);
+    const existingPhoto = await prisma.photo.findUnique({
+      where: { hash: fileHash }
+    });
+
+    if (existingPhoto) {
+      return NextResponse.json({ 
+        skipped: true, 
+        message: "Duplicate photo detected", 
+        photo: existingPhoto 
+      });
     }
 
     const metadata = JSON.parse(metadataStr);
@@ -144,6 +164,7 @@ export async function POST(req: NextRequest) {
     const photo = await prisma.photo.create({
       data: {
         filename,
+        hash: fileHash,
         thumbnail: `/uploads/thumbnails/${thumbFilename}`,
         medium: `/uploads/medium/${filename}`,
         full: `/uploads/full/${filename}`,
