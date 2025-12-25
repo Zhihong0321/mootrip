@@ -549,10 +549,17 @@ docs(readme): add setup instructions
    - Problem: Prisma 7 removed `url` from `schema.prisma`.
    - Fix: Verified `prisma.config.ts` correctly handles connection strings for CLI tools.
 
+4.  **Final Persistence Audit:**
+    - Verified `app/api/upload/route.ts` writes to `/storage/uploads` in production.
+    - Verified `app/uploads/[...path]/route.ts` reads from `/storage/uploads` in production.
+    - Confirmed `lib/image.ts` (with hardcoded paths) is unused legacy code.
+    - Confirmed `railway-start.sh` enforces `/storage/dev.db`.
+
 ### Checkpoints
 - [x] `DATABASE_URL` correctly points to `/storage/dev.db` in production.
 - [x] App builds and starts without crashing if DB is empty/unreachable.
 - [x] UI handles missing data with appropriate loading/empty states.
+- [x] **AUDIT PASS:** All stateful data (DB + Files) is routed to persistent storage.
 
 ---
 
