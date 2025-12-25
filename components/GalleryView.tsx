@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { MasonryGrid } from "@/components/MasonryGrid";
 import { Lightbox } from "@/components/Lightbox";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -139,24 +139,28 @@ export function GalleryView({ autoDateMode = false }: GalleryViewProps) {
     return () => observer.disconnect();
   }, [loading, visibleCount, sortedPhotos.length]);
 
-  const handleNext = () => {
-    const currentIndex = sortedPhotos.findIndex((p) => p.id === selectedPhoto.id);
+  const handleNext = useCallback(() => {
+    const currentIndex = sortedPhotos.findIndex((p) => p.id === selectedPhoto?.id);
     if (currentIndex < sortedPhotos.length - 1) {
       setSelectedPhoto(sortedPhotos[currentIndex + 1]);
     }
-  };
+  }, [sortedPhotos, selectedPhoto]);
 
-  const handlePrev = () => {
-    const currentIndex = sortedPhotos.findIndex((p) => p.id === selectedPhoto.id);
+  const handlePrev = useCallback(() => {
+    const currentIndex = sortedPhotos.findIndex((p) => p.id === selectedPhoto?.id);
     if (currentIndex > 0) {
       setSelectedPhoto(sortedPhotos[currentIndex - 1]);
     }
-  };
+  }, [sortedPhotos, selectedPhoto]);
 
-  const handleDelete = (id: string) => {
+  const handleClose = useCallback(() => {
+    setSelectedPhoto(null);
+  }, []);
+
+  const handleDelete = useCallback((id: string) => {
     setPhotos(prev => prev.filter(p => p.id !== id));
-    if (selectedPhoto?.id === id) setSelectedPhoto(null);
-  };
+    setSelectedPhoto(current => current?.id === id ? null : current);
+  }, []);
 
   if (loading) {
     return (
@@ -229,7 +233,7 @@ export function GalleryView({ autoDateMode = false }: GalleryViewProps) {
       {selectedPhoto && (
         <Lightbox
           photo={selectedPhoto}
-          onClose={() => setSelectedPhoto(null)}
+          onClose={handleClose}
           onNext={handleNext}
           onPrev={handlePrev}
           currentProfile={currentProfile}

@@ -24,25 +24,28 @@ export function ScrollingBackground() {
     const interval = setInterval(() => {
       setBreathingIds((prev) => {
         const next = new Set(prev);
-        // Filter out photos that aren't in the list anymore (sanity check)
         const availablePhotos = photos.filter(p => !next.has(p.id));
         
         if (availablePhotos.length > 0) {
-          const randomPhoto = availablePhotos[Math.floor(Math.random() * availablePhotos.length)];
-          next.add(randomPhoto.id);
-          
-          // Remove after 2 seconds (1s in, 1s out)
-          setTimeout(() => {
-            setBreathingIds((current) => {
-              const updated = new Set(current);
-              updated.delete(randomPhoto.id);
-              return updated;
-            });
-          }, 2000);
+          // Pick 3 random photos to breathe at once for higher frequency
+          for (let k = 0; k < 3; k++) {
+            if (availablePhotos.length === 0) break;
+            const randomIndex = Math.floor(Math.random() * availablePhotos.length);
+            const randomPhoto = availablePhotos.splice(randomIndex, 1)[0];
+            next.add(randomPhoto.id);
+            
+            setTimeout(() => {
+              setBreathingIds((current) => {
+                const updated = new Set(current);
+                updated.delete(randomPhoto.id);
+                return updated;
+              });
+            }, 2000);
+          }
         }
         return next;
       });
-    }, 700);
+    }, 500); // Increased frequency to 0.5s
 
     return () => clearInterval(interval);
   }, [photos]);
@@ -82,8 +85,10 @@ export function ScrollingBackground() {
                   className="relative w-full rounded-xl overflow-hidden"
                   style={{ paddingBottom: `${(1 / photo.aspectRatio) * 100}%` }}
                   animate={{ 
-                    opacity: isBreathing ? 0.8 : 0.25 // Using 0.25 as base to ensure 50% "visibility" against black doesn't wash out text, but will adjust to 0.5 if preferred
+                    opacity: isBreathing ? 0.8 : 0.4,
+                    scale: isBreathing ? 1.5 : 1
                   }}
+                  initial={{ opacity: 0.4, scale: 1 }}
                   transition={{ 
                     duration: 1,
                     ease: "easeInOut"
