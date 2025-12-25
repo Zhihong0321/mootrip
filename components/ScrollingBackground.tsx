@@ -83,7 +83,10 @@ export function ScrollingBackground() {
                 <motion.div 
                   key={`${photo.id}-${j}`}
                   className="relative w-full rounded-xl overflow-hidden"
-                  style={{ paddingBottom: `${(1 / photo.aspectRatio) * 100}%` }}
+                  style={{ 
+                    paddingBottom: `${(1 / photo.aspectRatio) * 100}%`,
+                    zIndex: isBreathing ? 50 : 1
+                  }}
                   animate={{ 
                     opacity: isBreathing ? 0.8 : 0.4,
                     scale: isBreathing ? 1.5 : 1
@@ -94,10 +97,12 @@ export function ScrollingBackground() {
                     ease: "easeInOut"
                   }}
                 >
-                  <img
+                  <motion.img
                     src={photo.medium}
                     alt=""
                     className="absolute inset-0 w-full h-full object-cover"
+                    animate={{ scale: isBreathing ? 1.2 : 1 }} // Internal zoom for extra effect
+                    transition={{ duration: 1 }}
                   />
                 </motion.div>
               );

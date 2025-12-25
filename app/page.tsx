@@ -21,25 +21,23 @@ export default function WelcomePage() {
           transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
           className="space-y-8"
         >
-          <div className="flex flex-col items-center">
-            <h1 className="flex flex-col items-center select-none drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)]">
-              <span className="text-xl md:text-3xl font-light tracking-[0.3em] uppercase opacity-80 mb-2">
-                Moo's Family
-              </span>
-              <span className="text-6xl md:text-[120px] font-black tracking-[calc(-0.02em)] italic uppercase leading-[0.9] block">
-                SHANGHAI
-              </span>
-              <span className="text-6xl md:text-[120px] font-black tracking-[calc(-0.02em)] italic uppercase leading-[0.9] block">
-                HANGZHOU
-              </span>
-              <span className="text-6xl md:text-[120px] font-black tracking-[calc(-0.02em)] italic uppercase leading-[0.9] block">
-                SUZHOU
-              </span>
-              <span className="text-primary tracking-[0.2em] font-black text-4xl md:text-[60px] block mt-4 drop-shadow-none">
-                2025
-              </span>
-            </h1>
-          </div>
+          <h1 className="flex flex-col items-center select-none drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)]">
+            <span className="text-xl md:text-3xl font-light tracking-[0.3em] uppercase opacity-80 mb-2">
+              Moo's Family
+            </span>
+            <span className="text-6xl md:text-[120px] font-black tracking-[calc(-0.02em)] italic uppercase leading-[0.9] block">
+              SHANGHAI
+            </span>
+            <span className="text-6xl md:text-[120px] font-black tracking-[calc(-0.02em)] italic uppercase leading-[0.9] block">
+              HANGZHOU
+            </span>
+            <span className="text-6xl md:text-[120px] font-black tracking-[calc(-0.02em)] italic uppercase leading-[0.9] block">
+              SUZHOU
+            </span>
+            <span className="text-primary tracking-[0.2em] font-black text-4xl md:text-[60px] block mt-4 drop-shadow-none">
+              2025
+            </span>
+          </h1>
           
           <motion.p 
             initial={{ opacity: 0, y: 10 }}
