@@ -61,11 +61,22 @@ export function Lightbox({ photo, onClose, onNext, onPrev }: LightboxProps) {
           <AnimatePresence mode="wait">
             <motion.div
               key={photo.id}
-              initial={{ opacity: 0, scale: 0.9, x: 20 }}
-              animate={{ opacity: 1, scale: 1, x: 0 }}
-              exit={{ opacity: 0, scale: 1.1, x: -20 }}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.1 }}
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.5}
+              onDragEnd={(e, { offset, velocity }) => {
+                const swipe = Math.abs(offset.x) > 50 || Math.abs(velocity.x) > 500;
+                if (swipe && offset.x > 0) {
+                  onPrev();
+                } else if (swipe && offset.x < 0) {
+                  onNext();
+                }
+              }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="relative w-full h-full flex flex-col items-center justify-center"
+              className="relative w-full h-full flex flex-col items-center justify-center cursor-grab active:cursor-grabbing"
             >
               <img
                 src={photo.full}
