@@ -47,7 +47,7 @@ export function ScrollingBackground() {
             {[...column, ...column].map((photo, j) => (
               <div 
                 key={`${photo.id}-${j}`}
-                className="relative w-full rounded-xl overflow-hidden grayscale contrast-125 opacity-20"
+                className="relative w-full rounded-xl overflow-hidden opacity-40"
                 style={{ paddingBottom: `${(1 / photo.aspectRatio) * 100}%` }}
               >
                 <img
@@ -61,7 +61,7 @@ export function ScrollingBackground() {
         ))}
       </div>
       {/* 50% Black Masking */}
-      <div className="absolute inset-0 bg-black/60" />
+      <div className="absolute inset-0 bg-black/50" />
     </div>
   );
 }

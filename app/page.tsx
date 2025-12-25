@@ -34,7 +34,7 @@ export default function WelcomePage() {
             <h1 className="text-6xl md:text-[140px] font-black tracking-[calc(-0.05em)] italic uppercase leading-[0.85] select-none drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)]">
               Shanghai <br />
               <span className="text-primary tracking-tighter not-italic font-black text-4xl md:text-[80px] block mt-4 drop-shadow-none opacity-90">
-                Hangzhou 2024
+                2025
               </span>
             </h1>
           </div>
@@ -43,10 +43,10 @@ export default function WelcomePage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6, duration: 1 }}
-            className="text-lg md:text-2xl text-white/60 font-medium tracking-[0.2em] uppercase max-w-xl mx-auto leading-relaxed"
+            className="text-lg md:text-2xl text-white/80 font-bold tracking-[0.1em] max-w-xl mx-auto leading-relaxed"
           >
-            A high-fidelity visual archive of our <br className="hidden md:block" />
-            journey through the heart of China.
+            来自爸妈的礼，<br />
+            全家一起的旅。
           </motion.p>
         </motion.div>
 
