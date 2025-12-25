@@ -211,7 +211,7 @@ export default function UploadPage() {
                   <SelectContent className="rounded-xl border-none shadow-2xl">
                     {locations.map((loc) => (
                       <SelectItem key={loc.id} value={loc.id} className="h-10">
-                        {loc.name_en} {loc.name_cn && `/ ${loc.name_cn}`}
+                        {loc.name_en === "Unsorted Photos" ? "General" : loc.name_en} {loc.name_cn && loc.name_en !== "Unsorted Photos" && `/ ${loc.name_cn}`}
                       </SelectItem>
                     ))}
                     {locations.length === 0 && (

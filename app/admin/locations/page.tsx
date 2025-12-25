@@ -72,8 +72,8 @@ function SortableItem({ loc, openEdit, deleteLoc, dayTitle }: any) {
           </TableCell>
           <TableCell className="w-[80px] font-mono text-xs font-bold text-primary">#{loc.order}</TableCell>
           <TableCell className="font-medium text-muted-foreground text-xs uppercase tracking-tighter">{dayTitle}</TableCell>
-          <TableCell className="font-semibold">{loc.name_en}</TableCell>
-          <TableCell>{loc.name_cn || "-"}</TableCell>
+          <TableCell className="font-semibold">{loc.name_en === "Unsorted Photos" ? "General" : loc.name_en}</TableCell>
+          <TableCell>{loc.name_en === "Unsorted Photos" ? "-" : (loc.name_cn || "-")}</TableCell>
           <TableCell className="text-right space-x-2">
             <Button variant="ghost" size="icon" onClick={() => openEdit(loc)} className="h-8 w-8">
               <Pencil className="w-4 h-4" />
@@ -97,8 +97,8 @@ function SortableItem({ loc, openEdit, deleteLoc, dayTitle }: any) {
                 <p className="text-[10px] uppercase font-black tracking-widest text-primary">{dayTitle}</p>
                 <p className="text-[10px] font-mono font-bold text-muted-foreground">ORD {loc.order}</p>
             </div>
-            <h3 className="font-bold text-lg leading-tight">{loc.name_en}</h3>
-            {loc.name_cn && (
+            <h3 className="font-bold text-lg leading-tight">{loc.name_en === "Unsorted Photos" ? "General" : loc.name_en}</h3>
+            {loc.name_cn && loc.name_en !== "Unsorted Photos" && (
                 <p className="text-sm text-muted-foreground font-medium">{loc.name_cn}</p>
             )}
             <div className="flex gap-2 pt-1">
