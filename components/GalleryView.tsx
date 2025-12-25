@@ -35,7 +35,7 @@ export function GalleryView({ autoDateMode = false }: GalleryViewProps) {
 
   const sortedPhotos = useMemo(() => {
     return [...photos].sort((a, b) => 
-      new Date(a.dateTaken).getTime() - new Date(b.dateTaken).getTime()
+      new Date(b.dateTaken).getTime() - new Date(a.dateTaken).getTime()
     );
   }, [photos]);
 
@@ -65,7 +65,7 @@ export function GalleryView({ autoDateMode = false }: GalleryViewProps) {
     const groups: { 
       [dateKey: string]: { 
         startGlobalIndex: number,
-        timeChunks: { timeKey: string, photos: any[], startIdx: number }[] 
+        timeChunks: { timeKey: string, startTime: number, photos: any[], startIdx: number }[] 
       } 
     } = {};
     let globalIndex = 0;
@@ -96,14 +96,25 @@ export function GalleryView({ autoDateMode = false }: GalleryViewProps) {
       
       let chunk = groups[dateKey].timeChunks.find(c => c.timeKey === timeKey);
       if (!chunk) {
-        chunk = { timeKey, photos: [], startIdx: globalIndex };
+        chunk = { timeKey, startTime: startHour, photos: [], startIdx: globalIndex };
         groups[dateKey].timeChunks.push(chunk);
       }
       
       chunk.photos.push(photo);
       globalIndex++;
     });
-    return groups;
+
+    // Sort dates descending
+    const sortedDateEntries = Object.entries(groups).sort((a, b) => {
+        return new Date(b[0]).getTime() - new Date(a[0]).getTime();
+    });
+
+    // Sort time chunks descending within each date
+    sortedDateEntries.forEach(([_, group]) => {
+        group.timeChunks.sort((a, b) => b.startTime - a.startTime);
+    });
+
+    return Object.fromEntries(sortedDateEntries);
   }, [visiblePhotos]);
 
   // Infinite Scroll Observer
