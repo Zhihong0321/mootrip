@@ -5,22 +5,26 @@ import { GalleryView } from "@/components/GalleryView";
 export const dynamic = "force-dynamic";
 
 export default async function GalleryPage() {
-  const settings = await prisma.systemSettings.findUnique({
-    where: { id: "default" },
-  });
+  try {
+    const settings = await prisma.systemSettings.findUnique({
+      where: { id: "default" },
+    });
 
-  if (settings?.autoDateMode) {
-    // If auto date mode is on, we don't redirect to a specific day.
-    // We render the gallery view directly with all photos.
+    if (settings?.autoDateMode) {
+      return <GalleryView autoDateMode={true} />;
+    }
+
+    const firstDay = await prisma.day.findFirst({
+      orderBy: { order: "asc" },
+    });
+
+    if (firstDay) {
+      redirect(`/gallery/${firstDay.id}`);
+    }
+  } catch (error) {
+    console.error("GalleryPage DB Error:", error);
+    // Fallback: render the gallery view in auto-mode or a safe state
     return <GalleryView autoDateMode={true} />;
-  }
-
-  const firstDay = await prisma.day.findFirst({
-    orderBy: { order: "asc" },
-  });
-
-  if (firstDay) {
-    redirect(`/gallery/${firstDay.id}`);
   }
 
   return (

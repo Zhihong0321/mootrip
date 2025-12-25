@@ -18,8 +18,8 @@ else
 fi
 
 # 2. RUN MIGRATIONS
-echo "Updating database schema..."
-./node_modules/.bin/prisma migrate deploy || echo "Prisma migrate failed"
+echo "Updating database schema at $DATABASE_URL..."
+DATABASE_URL="$DATABASE_URL" ./node_modules/.bin/prisma migrate deploy
 
 # 3. START SERVER
 # Railway is configured to listen on 8080
