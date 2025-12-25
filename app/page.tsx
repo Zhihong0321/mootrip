@@ -3,81 +3,75 @@
 import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Camera } from "lucide-react";
+import { Camera, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
+import { ScrollingBackground } from "@/components/ScrollingBackground";
+import { AdminSidebar } from "@/components/AdminSidebar";
 
 export default function WelcomePage() {
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center bg-background text-foreground p-6 text-center overflow-hidden">
-      {/* Abstract Background Decoration */}
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 0.05 }}
-        transition={{ duration: 2 }}
-        className="absolute inset-0 z-0 pointer-events-none"
-      >
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary rounded-full blur-[80px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary rounded-full blur-[80px]" />
-      </motion.div>
+    <div className="relative min-h-screen flex flex-col items-center justify-center bg-black text-white p-6 text-center overflow-hidden">
+      <ScrollingBackground />
+      <AdminSidebar />
 
-      <div className="relative z-10 space-y-12 max-w-2xl">
+      <div className="relative z-10 space-y-12 max-w-4xl">
         <motion.div 
-          initial={{ y: 20, opacity: 0 }}
+          initial={{ y: 30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="space-y-6"
+          transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+          className="space-y-8"
         >
-          <motion.div 
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            className="inline-block p-5 rounded-full bg-primary/10 mb-2"
-          >
-            <Camera className="w-12 h-12 text-primary" />
-          </motion.div>
-          
-          <h1 className="text-5xl md:text-8xl font-black tracking-tighter italic uppercase">
-            Shanghai <br />
-            <span className="text-primary tracking-normal not-italic lowercase font-light">Trip 2024</span>
-          </h1>
+          <div className="flex flex-col items-center">
+            <motion.div 
+              initial={{ scale: 0.5, rotate: -15, opacity: 0 }}
+              animate={{ scale: 1, rotate: 0, opacity: 1 }}
+              transition={{ delay: 0.2, type: "spring", damping: 12 }}
+              className="w-20 h-20 bg-primary/20 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-primary/30 mb-8"
+            >
+              <Camera className="w-10 h-10 text-primary" />
+            </motion.div>
+            
+            <h1 className="text-6xl md:text-[140px] font-black tracking-[calc(-0.05em)] italic uppercase leading-[0.85] select-none drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)]">
+              Shanghai <br />
+              <span className="text-primary tracking-tighter not-italic font-black text-4xl md:text-[80px] block mt-4 drop-shadow-none opacity-90">
+                Hangzhou 2024
+              </span>
+            </h1>
+          </div>
           
           <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5, duration: 1 }}
-            className="text-xl md:text-2xl text-muted-foreground font-light tracking-wide"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 1 }}
+            className="text-lg md:text-2xl text-white/60 font-medium tracking-[0.2em] uppercase max-w-xl mx-auto leading-relaxed"
           >
-            A visual journey through Shanghai & Hangzhou. <br className="hidden md:block" />
-            <span className="font-medium text-foreground">800+</span> memories captured in pixels.
+            A high-fidelity visual archive of our <br className="hidden md:block" />
+            journey through the heart of China.
           </motion.p>
         </motion.div>
 
         <motion.div 
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.8, duration: 0.5 }}
-          className="flex flex-col sm:flex-row gap-6 justify-center"
+          transition={{ delay: 1, duration: 0.8 }}
+          className="flex flex-col items-center gap-8"
         >
-          <Button asChild size="lg" className="rounded-full px-10 h-14 text-lg font-bold shadow-xl shadow-primary/20 hover:scale-105 transition-transform active:scale-95">
-            <Link href="/gallery">Start Exploring</Link>
+          <Button asChild size="lg" className="rounded-full px-12 h-16 text-xl font-black uppercase tracking-widest shadow-2xl shadow-primary/40 hover:scale-105 hover:shadow-primary/60 transition-all active:scale-95 group">
+            <Link href="/gallery" className="flex items-center gap-3">
+              Enter Gallery <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+            </Link>
           </Button>
-          <Button asChild variant="outline" size="lg" className="rounded-full px-10 h-14 text-lg font-medium backdrop-blur-sm hover:bg-primary/5 transition-all">
-            <Link href="/admin">Admin Dashboard</Link>
-          </Button>
+          
+          <div className="flex items-center gap-4 text-white/30 text-[10px] font-black uppercase tracking-[0.4em]">
+            <div className="h-px w-8 bg-current" />
+            Captured with Love
+            <div className="h-px w-8 bg-current" />
+          </div>
         </motion.div>
       </div>
 
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 0.4 }}
-        transition={{ delay: 1.5, duration: 1 }}
-        className="absolute bottom-8 flex flex-col items-center gap-2"
-      >
-        <div className="w-px h-12 bg-gradient-to-b from-primary/50 to-transparent" />
-        <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground">
-          Built with Next.js & Prisma
-        </span>
-      </motion.div>
+      {/* Decorative Bottom Gradient */}
+      <div className="absolute bottom-0 left-0 w-full h-64 bg-gradient-to-t from-black to-transparent pointer-events-none z-[5]" />
     </div>
   );
 }

@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
-import { X, ChevronLeft, ChevronRight, Maximize2, ZoomIn, ZoomOut, Trash2 } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 
 interface LightboxProps {
@@ -131,9 +131,9 @@ export function Lightbox({ photo, onClose, onNext, onPrev, currentProfile, onDel
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm flex flex-col items-center justify-center p-4 md:p-8 overflow-hidden touch-none"
-        onWheel={(e) => {
-          if (e.ctrlKey) {
-            setZoom(prev => Math.min(Math.max(prev - e.deltaY * 0.01, 1), 5));
+        onWheel={(event) => {
+          if (event.ctrlKey) {
+            setZoom(prev => Math.min(Math.max(prev - event.deltaY * 0.01, 1), 5));
           }
         }}
       >
