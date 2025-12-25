@@ -52,13 +52,12 @@ export function GalleryView({ autoDateMode = false }: GalleryViewProps) {
     if (freq === "low") step = 20;
 
     const indices: number[] = [];
-    for (let i = step; i < sortedPhotos.length; i += step) {
-        const photo = sortedPhotos[i];
+    sortedPhotos.forEach((photo, index) => {
         const hash = photo.id.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
-        const offset = (hash % 5) - 2;
-        const index = Math.max(0, Math.min(sortedPhotos.length - 1, i + offset));
-        indices.push(index);
-    }
+        if (hash % step === 0) {
+            indices.push(index);
+        }
+    });
     return indices;
   }, [settings, sortedPhotos]);
 
