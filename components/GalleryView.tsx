@@ -39,7 +39,7 @@ export function GalleryView({ autoDateMode = false }: GalleryViewProps) {
   }, [photos]);
 
   const magicIndices = useMemo(() => {
-    if (!settings || !photos.length) return [];
+    if (!settings || !sortedPhotos.length) return [];
     
     const freq = settings.magicEffectFrequency || "mild";
     let step = 15;
@@ -48,8 +48,11 @@ export function GalleryView({ autoDateMode = false }: GalleryViewProps) {
 
     const indices: number[] = [];
     for (let i = step; i < sortedPhotos.length; i += step) {
-        // Randomize within a small range (e.g., 12-15)
-        const offset = Math.floor(Math.random() * 4) - 2; // -2 to +1
+        // Use a simple hash of the photo ID to create a stable but "random" offset
+        const photo = sortedPhotos[i];
+        const hash = photo.id.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
+        const offset = (hash % 5) - 2; // -2 to +2
+        
         const index = Math.max(0, Math.min(sortedPhotos.length - 1, i + offset));
         indices.push(index);
     }
