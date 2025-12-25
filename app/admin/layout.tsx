@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Upload, Calendar, MapPin } from "lucide-react";
+import { LayoutDashboard, Upload, Calendar, MapPin, Image as ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function AdminLayout({
@@ -14,10 +14,11 @@ export default function AdminLayout({
   const pathname = usePathname();
 
   const navItems = [
-    { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/admin", label: "Home", icon: LayoutDashboard },
     { href: "/admin/upload", label: "Upload", icon: Upload },
+    { href: "/admin/photos", label: "Photos", icon: ImageIcon },
     { href: "/admin/days", label: "Days", icon: Calendar },
-    { href: "/admin/locations", label: "Locations", icon: MapPin },
+    { href: "/admin/locations", label: "Spots", icon: MapPin },
   ];
 
   return (

@@ -5,6 +5,31 @@ import path from "path";
 
 export const dynamic = "force-dynamic";
 
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const { locationId, dateTaken } = await req.json();
+
+    const photo = await prisma.photo.update({
+      where: { id },
+      data: {
+        locationId: locationId || undefined,
+        dateTaken: dateTaken ? new Date(dateTaken) : undefined,
+      },
+      include: {
+        location: true
+      }
+    });
+
+    return NextResponse.json(photo);
+  } catch (error) {
+    return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+  }
+}
+
 export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
