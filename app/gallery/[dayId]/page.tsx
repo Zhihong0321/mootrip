@@ -121,10 +121,12 @@ export default function DayDetailPage() {
       <div className="container mx-auto px-4 space-y-12">
         {locationsWithPhotos.map((group) => (
           <div key={group.info.id} className="space-y-6">
-            <div className="flex items-baseline space-x-3 border-l-4 border-primary pl-4">
-              <h2 className="text-2xl font-bold">{group.info.name_en}</h2>
-              <span className="text-xl text-muted-foreground font-light">{group.info.name_cn}</span>
-            </div>
+            {group.info.name_en !== "Unsorted Photos" && (
+              <div className="flex items-baseline space-x-3 border-l-4 border-primary pl-4">
+                <h2 className="text-2xl font-bold">{group.info.name_en}</h2>
+                <span className="text-xl text-muted-foreground font-light">{group.info.name_cn}</span>
+              </div>
+            )}
             <MasonryGrid 
               photos={group.photos} 
               onPhotoClick={(p) => setSelectedPhoto(p)} 

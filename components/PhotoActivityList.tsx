@@ -59,7 +59,9 @@ export function PhotoActivityItem({ photo: initialPhoto, onDelete }: PhotoItemPr
             {initialPhoto.filename.includes('-') ? initialPhoto.filename.split('-').slice(1).join('-') : initialPhoto.filename}
         </p>
         <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-tighter">
-            {initialPhoto.location?.name_en || 'Unsorted'} • {initialPhoto.dateTaken ? new Date(initialPhoto.dateTaken).toISOString().split('T')[0] : 'Unknown Date'}
+            {initialPhoto.location?.name_en && initialPhoto.location.name_en !== "Unsorted Photos" ? initialPhoto.location.name_en : ''}
+            {initialPhoto.location?.name_en && initialPhoto.location.name_en !== "Unsorted Photos" ? ' • ' : ''}
+            {initialPhoto.dateTaken ? new Date(initialPhoto.dateTaken).toISOString().split('T')[0] : 'Unknown Date'}
         </p>
       </div>
       <div className="flex items-center gap-2">

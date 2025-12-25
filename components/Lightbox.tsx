@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { X, ChevronLeft, ChevronRight, Maximize2, ZoomIn, ZoomOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from "framer-motion";
 
 interface LightboxProps {
   photo: any;
@@ -14,6 +14,9 @@ interface LightboxProps {
 
 export function Lightbox({ photo, onClose, onNext, onPrev }: LightboxProps) {
   const [zoom, setZoom] = useState(1);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const startDistance = useRef<number>(0);
+  const initialZoom = useRef<number>(1);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -25,10 +28,41 @@ export function Lightbox({ photo, onClose, onNext, onPrev }: LightboxProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onClose, onNext, onPrev]);
 
+  useEffect(() => {
+    setZoom(1);
+  }, [photo?.id]);
+
   if (!photo) return null;
 
   const toggleZoom = () => {
     setZoom(prev => prev === 1 ? 2 : 1);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      const dist = Math.hypot(
+        e.touches[0].pageX - e.touches[1].pageX,
+        e.touches[0].pageY - e.touches[1].pageY
+      );
+      startDistance.current = dist;
+      initialZoom.current = zoom;
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length === 2 && startDistance.current > 0) {
+      const dist = Math.hypot(
+        e.touches[0].pageX - e.touches[1].pageX,
+        e.touches[0].pageY - e.touches[1].pageY
+      );
+      const ratio = dist / startDistance.current;
+      const nextZoom = Math.min(Math.max(initialZoom.current * ratio, 1), 5);
+      setZoom(nextZoom);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    startDistance.current = 0;
   };
 
   return (
@@ -37,7 +71,12 @@ export function Lightbox({ photo, onClose, onNext, onPrev }: LightboxProps) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm flex flex-col items-center justify-center p-4 md:p-8"
+        className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm flex flex-col items-center justify-center p-4 md:p-8 overflow-hidden touch-none"
+        onWheel={(e) => {
+          if (e.ctrlKey) {
+            setZoom(prev => Math.min(Math.max(prev - e.deltaY * 0.01, 1), 5));
+          }
+        }}
       >
         <motion.div
           initial={{ y: -20, opacity: 0 }}
@@ -62,15 +101,23 @@ export function Lightbox({ photo, onClose, onNext, onPrev }: LightboxProps) {
           </Button>
         </motion.div>
 
-        <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute left-4 z-50 text-white hover:bg-white/10 rounded-full w-14 h-14 hidden md:flex"
-            onClick={() => { setZoom(1); onPrev(); }}
-          >
-            <ChevronLeft className="w-10 h-10" />
-          </Button>
+        <div 
+          ref={containerRef}
+          className="relative w-full h-full flex items-center justify-center overflow-hidden"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          {zoom === 1 && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute left-4 z-50 text-white hover:bg-white/10 rounded-full w-14 h-14 hidden md:flex"
+              onClick={() => { setZoom(1); onPrev(); }}
+            >
+              <ChevronLeft className="w-10 h-10" />
+            </Button>
+          )}
 
           <AnimatePresence mode="wait">
             <motion.div
@@ -98,7 +145,7 @@ export function Lightbox({ photo, onClose, onNext, onPrev }: LightboxProps) {
               <img
                 src={photo.full}
                 alt={photo.filename}
-                className="max-w-full max-h-[75vh] object-contain shadow-[0_0_50px_rgba(0,0,0,0.5)] rounded-sm"
+                className="max-w-full max-h-[85vh] object-contain shadow-[0_0_50px_rgba(0,0,0,0.5)] rounded-sm pointer-events-none"
                 onDoubleClick={toggleZoom}
               />
               
@@ -109,14 +156,16 @@ export function Lightbox({ photo, onClose, onNext, onPrev }: LightboxProps) {
                   transition={{ delay: 0.3 }}
                   className="mt-8 text-center text-white max-w-lg"
                 >
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <div className="h-px w-8 bg-primary/50" />
-                    <h3 className="text-2xl font-light tracking-widest uppercase">
-                      {photo.location?.name_en}
-                    </h3>
-                    <div className="h-px w-8 bg-primary/50" />
-                  </div>
-                  {photo.location?.name_cn && (
+                  {photo.location?.name_en && photo.location.name_en !== "Unsorted Photos" && (
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                      <div className="h-px w-8 bg-primary/50" />
+                      <h3 className="text-2xl font-light tracking-widest uppercase">
+                        {photo.location?.name_en}
+                      </h3>
+                      <div className="h-px w-8 bg-primary/50" />
+                    </div>
+                  )}
+                  {photo.location?.name_cn && photo.location.name_en !== "Unsorted Photos" && (
                     <p className="text-primary font-medium mb-2">{photo.location.name_cn}</p>
                   )}
                   <p className="text-xs text-muted-foreground tracking-[0.3em] uppercase">
@@ -128,25 +177,29 @@ export function Lightbox({ photo, onClose, onNext, onPrev }: LightboxProps) {
             </motion.div>
           </AnimatePresence>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute right-4 z-50 text-white hover:bg-white/10 rounded-full w-14 h-14 hidden md:flex"
-            onClick={() => { setZoom(1); onNext(); }}
-          >
-            <ChevronRight className="w-10 h-10" />
-          </Button>
+          {zoom === 1 && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-4 z-50 text-white hover:bg-white/10 rounded-full w-14 h-14 hidden md:flex"
+              onClick={() => { setZoom(1); onNext(); }}
+            >
+              <ChevronRight className="w-10 h-10" />
+            </Button>
+          )}
         </div>
         
         {/* Mobile Navigation */}
-        <div className="flex gap-12 mt-4 md:hidden z-50">
-           <Button variant="ghost" className="text-white h-12 px-6 rounded-full border border-white/20" onClick={() => { setZoom(1); onPrev(); }}>
-             <ChevronLeft className="w-6 h-6 mr-2" /> Prev
-           </Button>
-           <Button variant="ghost" className="text-white h-12 px-6 rounded-full border border-white/20" onClick={() => { setZoom(1); onNext(); }}>
-             Next <ChevronRight className="w-6 h-6 ml-2" />
-           </Button>
-        </div>
+        {zoom === 1 && (
+          <div className="flex gap-12 mt-4 md:hidden z-50">
+             <Button variant="ghost" className="text-white h-12 px-6 rounded-full border border-white/20" onClick={() => { setZoom(1); onPrev(); }}>
+               <ChevronLeft className="w-6 h-6 mr-2" /> Prev
+             </Button>
+             <Button variant="ghost" className="text-white h-12 px-6 rounded-full border border-white/20" onClick={() => { setZoom(1); onNext(); }}>
+               Next <ChevronRight className="w-6 h-6 ml-2" />
+             </Button>
+          </div>
+        )}
       </motion.div>
     </AnimatePresence>
   );

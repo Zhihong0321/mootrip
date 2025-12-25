@@ -63,19 +63,45 @@ export function GalleryView({ autoDateMode = false }: GalleryViewProps) {
   }, [settings, sortedPhotos]);
 
   const photosByDate = useMemo(() => {
-    const groups: { [key: string]: { photos: any[], startGlobalIndex: number } } = {};
+    const groups: { 
+      [dateKey: string]: { 
+        startGlobalIndex: number,
+        timeChunks: { timeKey: string, photos: any[], startIdx: number }[] 
+      } 
+    } = {};
     let globalIndex = 0;
     
     visiblePhotos.forEach((photo) => {
-      const dateKey = new Date(photo.dateTaken).toLocaleDateString("en-US", {
+      const date = new Date(photo.dateTaken);
+      const dateKey = date.toLocaleDateString("en-US", {
         year: "numeric",
         month: "long",
         day: "numeric",
       });
+      
       if (!groups[dateKey]) {
-        groups[dateKey] = { photos: [], startGlobalIndex: globalIndex };
+        groups[dateKey] = { startGlobalIndex: globalIndex, timeChunks: [] };
       }
-      groups[dateKey].photos.push(photo);
+      
+      const hour = date.getHours();
+      const startHour = Math.floor(hour / 3) * 3;
+      const endHour = startHour + 3;
+      
+      const formatHour = (h: number) => {
+        const period = h >= 12 ? "pm" : "am";
+        const displayHour = h % 12 || 12;
+        return `${displayHour}:00${period}`;
+      };
+      
+      const timeKey = `${formatHour(startHour)} — ${formatHour(endHour)}`;
+      
+      let chunk = groups[dateKey].timeChunks.find(c => c.timeKey === timeKey);
+      if (!chunk) {
+        chunk = { timeKey, photos: [], startIdx: globalIndex };
+        groups[dateKey].timeChunks.push(chunk);
+      }
+      
+      chunk.photos.push(photo);
       globalIndex++;
     });
     return groups;
@@ -145,14 +171,27 @@ export function GalleryView({ autoDateMode = false }: GalleryViewProps) {
               </h2>
               <div className="h-px flex-1 bg-gradient-to-r from-transparent via-muted-foreground/20 to-transparent" />
             </div>
-            <MasonryGrid
-              photos={group.photos}
-              onPhotoClick={(p) => setSelectedPhoto(p)}
-              magicIndices={magicIndices
-                .filter(idx => idx >= group.startGlobalIndex && idx < group.startGlobalIndex + group.photos.length)
-                .map(idx => idx - group.startGlobalIndex)
-              }
-            />
+            
+            <div className="space-y-12">
+              {group.timeChunks.map((chunk) => (
+                <div key={chunk.timeKey} className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary bg-primary/10 px-3 py-1 rounded-full">
+                      {chunk.timeKey}
+                    </span>
+                    <div className="h-px flex-1 bg-muted/30" />
+                  </div>
+                  <MasonryGrid
+                    photos={chunk.photos}
+                    onPhotoClick={(p) => setSelectedPhoto(p)}
+                    magicIndices={magicIndices
+                      .filter(idx => idx >= chunk.startIdx && idx < chunk.startIdx + chunk.photos.length)
+                      .map(idx => idx - chunk.startIdx)
+                    }
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         ))}
         {photos.length === 0 && (

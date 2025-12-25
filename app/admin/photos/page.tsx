@@ -139,7 +139,7 @@ export default function PhotoManagementPage() {
                                     <div className="px-2 py-1.5 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 border-b border-dashed mb-1 mt-2">Day {day.order}</div>
                                     {day.locations.map((loc: any) => (
                                         <SelectItem key={loc.id} value={loc.id} className="text-[11px]">
-                                            {loc.name_en}
+                                            {loc.name_en === "Unsorted Photos" ? "General" : loc.name_en}
                                         </SelectItem>
                                     ))}
                                 </React.Fragment>
@@ -172,7 +172,7 @@ export default function PhotoManagementPage() {
                         </div>
                     </div>
                     <Badge variant="outline" className="text-[9px] px-1.5 h-4 font-black uppercase border-primary/20 text-primary">
-                        {photo.location?.name_cn || 'N/A'}
+                        {photo.location?.name_en === "Unsorted Photos" ? 'General' : (photo.location?.name_cn || 'N/A')}
                     </Badge>
                 </div>
               </div>
