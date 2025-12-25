@@ -70,7 +70,7 @@ export function ScrollingBackground() {
             initial={{ y: 0 }}
             animate={{ y: "-50%" }}
             transition={{
-              duration: 60 * (1 + i * 0.2), // Varies from 60s to 96s (60% difference)
+              duration: [40, 75, 55, 90][i], // Dramatically different speeds for each column
               repeat: Infinity,
               ease: "linear",
             }}
