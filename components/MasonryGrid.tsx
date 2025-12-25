@@ -75,15 +75,17 @@ export function MasonryGrid({ photos, onPhotoClick, magicIndices = [] }: Masonry
                 sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
               />
             </div>
+            {/* Profile Tag - Always visible on top left */}
+            {photo.uploader?.name && (
+              <div className="absolute top-2 left-2 z-10">
+                <span className="bg-black/40 backdrop-blur-md text-white text-[7px] font-black uppercase px-2 py-0.5 rounded-full tracking-tighter border border-white/10">
+                  {photo.uploader.name}
+                </span>
+              </div>
+            )}
+
             {/* Hover Overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
-               {photo.profile?.name && (
-                 <div className="mb-auto">
-                    <span className="bg-primary/90 text-primary-foreground text-[8px] font-black uppercase px-2 py-0.5 rounded-full tracking-tighter">
-                      {photo.profile.name}
-                    </span>
-                 </div>
-               )}
                <p className="text-white text-[10px] font-bold uppercase tracking-widest translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
                   {new Date(photo.dateTaken).toLocaleDateString()}
                </p>

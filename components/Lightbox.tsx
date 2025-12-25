@@ -121,6 +121,7 @@ export function Lightbox({ photo, onClose, onNext, onPrev }: LightboxProps) {
                   )}
                   <p className="text-xs text-muted-foreground tracking-[0.3em] uppercase">
                     {new Date(photo.dateTaken).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                    {photo.uploader?.name && ` • BY ${photo.uploader.name}`}
                   </p>
                 </motion.div>
               )}
