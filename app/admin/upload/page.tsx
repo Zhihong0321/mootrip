@@ -25,6 +25,7 @@ export default function UploadPage() {
   const [selectedDay, setSelectedDay] = useState<string>("");
   const [selectedLocation, setSelectedLocation] = useState<string>("");
   const [uploadedPhotos, setUploadedPhotos] = useState<any[]>([]);
+  const [settings, setSettings] = useState<any>(null);
 
   const handleDeletePhoto = async (id: string) => {
     if (!confirm("Delete this photo?")) return;
@@ -51,8 +52,15 @@ export default function UploadPage() {
     if (!selectedDay && data.length > 0) setSelectedDay(data[0].id);
   };
 
+  const fetchSettings = async () => {
+    const res = await fetch("/api/settings");
+    const data = await res.json();
+    setSettings(data);
+  };
+
   useEffect(() => {
     fetchDays();
+    fetchSettings();
   }, []);
 
   const handleCreateDay = async (e: React.FormEvent) => {
@@ -122,95 +130,107 @@ export default function UploadPage() {
       <Card className="border-none shadow-xl shadow-primary/5 bg-card/50 backdrop-blur-sm">
         <CardHeader className="pb-4">
           <CardTitle className="text-lg font-bold flex items-center gap-2">
-            <ImageIcon className="w-5 h-5 text-primary" /> Destination Assignment
+            <ImageIcon className="w-5 h-5 text-primary" /> 
+            {settings?.autoDateMode ? "Full Auto Mode Active" : "Destination Assignment"}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between px-1">
-                <Label htmlFor="day" className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Trip Day</Label>
-                <Dialog open={newDayOpen} onOpenChange={setNewDayOpen}>
-                  <DialogTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-6 px-2 text-[10px] font-bold uppercase tracking-tighter text-primary hover:bg-primary/10">
-                      <Plus className="w-3 h-3 mr-1" /> New Day
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="rounded-t-3xl sm:rounded-xl">
-                    <DialogHeader>
-                      <DialogTitle className="text-xl font-black uppercase italic">Quick Create Day</DialogTitle>
-                    </DialogHeader>
-                    <form onSubmit={handleCreateDay} className="space-y-4 pt-4">
-                      <Input
-                        placeholder="e.g. Day 8: Departure"
-                        value={newDayTitle}
-                        onChange={(e) => setNewDayTitle(e.target.value)}
-                        className="h-12 bg-muted/30 border-none text-lg font-medium"
-                        required
-                      />
-                      <Button type="submit" className="w-full h-12 rounded-xl font-bold uppercase tracking-widest shadow-lg shadow-primary/20">Create Day</Button>
-                    </form>
-                  </DialogContent>
-                </Dialog>
+          {!settings?.autoDateMode ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between px-1">
+                  <Label htmlFor="day" className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Trip Day</Label>
+                  <Dialog open={newDayOpen} onOpenChange={setNewDayOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="ghost" size="sm" className="h-6 px-2 text-[10px] font-bold uppercase tracking-tighter text-primary hover:bg-primary/10">
+                        <Plus className="w-3 h-3 mr-1" /> New Day
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="rounded-t-3xl sm:rounded-xl">
+                      <DialogHeader>
+                        <DialogTitle className="text-xl font-black uppercase italic">Quick Create Day</DialogTitle>
+                      </DialogHeader>
+                      <form onSubmit={handleCreateDay} className="space-y-4 pt-4">
+                        <Input
+                          placeholder="e.g. Day 8: Departure"
+                          value={newDayTitle}
+                          onChange={(e) => setNewDayTitle(e.target.value)}
+                          className="h-12 bg-muted/30 border-none text-lg font-medium"
+                          required
+                        />
+                        <Button type="submit" className="w-full h-12 rounded-xl font-bold uppercase tracking-widest shadow-lg shadow-primary/20">Create Day</Button>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+                <Select value={selectedDay} onValueChange={setSelectedDay}>
+                  <SelectTrigger className="h-12 rounded-xl bg-muted/30 border-none text-base font-medium">
+                    <SelectValue placeholder="Automatic (via EXIF)" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border-none shadow-2xl">
+                    <SelectItem value="null">Automatic (EXIF)</SelectItem>
+                    {days.map((day) => (
+                      <SelectItem key={day.id} value={day.id} className="h-10">
+                        Day {day.order}: {day.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              <Select value={selectedDay} onValueChange={setSelectedDay}>
-                <SelectTrigger className="h-12 rounded-xl bg-muted/30 border-none text-base font-medium">
-                  <SelectValue placeholder="Automatic (via EXIF)" />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl border-none shadow-2xl">
-                  <SelectItem value="null">Automatic (EXIF)</SelectItem>
-                  {days.map((day) => (
-                    <SelectItem key={day.id} value={day.id} className="h-10">
-                      Day {day.order}: {day.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
 
-            <div className="space-y-3">
-              <div className="flex items-center justify-between px-1">
-                <Label htmlFor="location" className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Specific Spot</Label>
-                <Dialog open={newLocOpen} onOpenChange={setNewLocOpen}>
-                  <DialogTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-6 px-2 text-[10px] font-bold uppercase tracking-tighter text-primary hover:bg-primary/10" disabled={!selectedDay}>
-                      <Plus className="w-3 h-3 mr-1" /> New Spot
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="rounded-t-3xl sm:rounded-xl">
-                    <DialogHeader>
-                      <DialogTitle className="text-xl font-black uppercase italic">Quick Create Spot</DialogTitle>
-                    </DialogHeader>
-                    <form onSubmit={handleCreateLoc} className="space-y-4 pt-4">
-                      <Input
-                        placeholder="e.g. Pudong Airport"
-                        value={newLocName}
-                        onChange={(e) => setNewLocName(e.target.value)}
-                        className="h-12 bg-muted/30 border-none text-lg font-medium"
-                        required
-                      />
-                      <Button type="submit" className="w-full h-12 rounded-xl font-bold uppercase tracking-widest shadow-lg shadow-primary/20">Create Spot</Button>
-                    </form>
-                  </DialogContent>
-                </Dialog>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between px-1">
+                  <Label htmlFor="location" className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Specific Spot</Label>
+                  <Dialog open={newLocOpen} onOpenChange={setNewLocOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="ghost" size="sm" className="h-6 px-2 text-[10px] font-bold uppercase tracking-tighter text-primary hover:bg-primary/10" disabled={!selectedDay}>
+                        <Plus className="w-3 h-3 mr-1" /> New Spot
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="rounded-t-3xl sm:rounded-xl">
+                      <DialogHeader>
+                        <DialogTitle className="text-xl font-black uppercase italic">Quick Create Spot</DialogTitle>
+                      </DialogHeader>
+                      <form onSubmit={handleCreateLoc} className="space-y-4 pt-4">
+                        <Input
+                          placeholder="e.g. Pudong Airport"
+                          value={newLocName}
+                          onChange={(e) => setNewLocName(e.target.value)}
+                          className="h-12 bg-muted/30 border-none text-lg font-medium"
+                          required
+                        />
+                        <Button type="submit" className="w-full h-12 rounded-xl font-bold uppercase tracking-widest shadow-lg shadow-primary/20">Create Spot</Button>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+                <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+                  <SelectTrigger className="h-12 rounded-xl bg-muted/30 border-none text-base font-medium">
+                    <SelectValue placeholder="Choose Spot" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border-none shadow-2xl">
+                    {locations.map((loc) => (
+                      <SelectItem key={loc.id} value={loc.id} className="h-10">
+                        {loc.name_en} {loc.name_cn && `/ ${loc.name_cn}`}
+                      </SelectItem>
+                    ))}
+                    {locations.length === 0 && (
+                        <div className="p-4 text-center text-xs text-muted-foreground italic">No spots found for this day</div>
+                    )}
+                  </SelectContent>
+                </Select>
               </div>
-              <Select value={selectedLocation} onValueChange={setSelectedLocation}>
-                <SelectTrigger className="h-12 rounded-xl bg-muted/30 border-none text-base font-medium">
-                  <SelectValue placeholder="Choose Spot" />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl border-none shadow-2xl">
-                  {locations.map((loc) => (
-                    <SelectItem key={loc.id} value={loc.id} className="h-10">
-                      {loc.name_en} {loc.name_cn && `/ ${loc.name_cn}`}
-                    </SelectItem>
-                  ))}
-                  {locations.length === 0 && (
-                      <div className="p-4 text-center text-xs text-muted-foreground italic">No spots found for this day</div>
-                  )}
-                </SelectContent>
-              </Select>
             </div>
-          </div>
+          ) : (
+            <div className="bg-primary/10 p-6 rounded-2xl border border-primary/20 space-y-2">
+              <p className="text-sm font-bold text-primary uppercase tracking-tighter">System is in Auto Date Mode</p>
+              <p className="text-xs text-muted-foreground leading-relaxed font-medium">
+                Photos will be automatically organized by their capture date. Manual day and spot selection is disabled to ensure a clean chronological gallery. 
+                <br />
+                <span className="italic mt-1 block">Bulk upload any number of photos - the system handles the rest.</span>
+              </p>
+            </div>
+          )}
 
           <div className="pt-2">
             <UploadZone

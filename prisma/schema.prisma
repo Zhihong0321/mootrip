@@ -61,3 +61,8 @@ model Log {
 
   @@index([timestamp])
 }
+
+model SystemSettings {
+  id           String  @id @default("default")
+  autoDateMode Boolean @default(false)
+}

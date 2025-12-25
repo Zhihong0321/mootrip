@@ -1,9 +1,60 @@
-import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Settings as SettingsIcon, Shield, Cloud, Info, ScrollText } from "lucide-react";
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Settings as SettingsIcon, Shield, Cloud, Info, ScrollText, Calendar, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 export default function SettingsPage() {
+  const [settings, setSettings] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/settings")
+      .then(res => res.json())
+      .then(data => {
+        setSettings(data);
+        setLoading(false);
+      })
+      .catch(() => {
+        toast.error("Failed to load settings");
+        setLoading(false);
+      });
+  }, []);
+
+  const toggleAutoDateMode = async () => {
+    setSaving(true);
+    const newValue = !settings.autoDateMode;
+    try {
+      const res = await fetch("/api/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ autoDateMode: newValue }),
+      });
+      if (res.ok) {
+        setSettings({ ...settings, autoDateMode: newValue });
+        toast.success(`Auto Date Mode ${newValue ? "Enabled" : "Disabled"}`);
+      } else {
+        throw new Error();
+      }
+    } catch (error) {
+      toast.error("Failed to update settings");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="container px-4 py-8 flex items-center justify-center min-h-[50vh]">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="container px-4 py-8 md:py-12 space-y-8">
       <div>
@@ -12,6 +63,36 @@ export default function SettingsPage() {
       </div>
 
       <div className="grid gap-6">
+        <Card className="border-none shadow-xl shadow-primary/5 bg-card/50 backdrop-blur-sm overflow-hidden border-l-4 border-l-primary">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <CardTitle className="text-lg font-bold flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-primary" /> Auto Date Mode
+                </CardTitle>
+                <CardDescription>
+                  When enabled, the gallery will ignore manual Day/Spot settings and organize photos automatically by their capture date.
+                </CardDescription>
+              </div>
+              <Button 
+                variant={settings?.autoDateMode ? "default" : "outline"}
+                onClick={toggleAutoDateMode}
+                disabled={saving}
+                className="font-bold uppercase tracking-tighter"
+              >
+                {saving ? "Saving..." : settings?.autoDateMode ? "Enabled" : "Disabled"}
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-xs font-medium text-muted-foreground space-y-1">
+              <p>• Gallery will group photos by date taken</p>
+              <p>• Section headers will display the date</p>
+              <p>• Photos will be shown in chronological order (oldest first)</p>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card className="border-none shadow-xl shadow-primary/5 bg-card/50 backdrop-blur-sm">
           <CardHeader>
             <CardTitle className="text-lg font-bold flex items-center gap-2">

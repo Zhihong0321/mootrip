@@ -37,6 +37,10 @@ export async function POST(req: NextRequest) {
     const thumbFilename = `${uniqueId}-${originalName.split('.')[0]}.webp`;
 
     // 1. SMART DAY INFERENCE
+    const settings = await prisma.systemSettings.findUnique({
+      where: { id: "default" },
+    });
+
     if (!dayId && metadata.dateTaken) {
       const date = new Date(metadata.dateTaken);
       const dayDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -66,7 +70,18 @@ export async function POST(req: NextRequest) {
     }
 
     if (!dayId) {
-        return NextResponse.json({ error: "Could not determine Day for this photo." }, { status: 400 });
+        // Fallback for autoDateMode or if date inference failed
+        const fallbackDay = await prisma.day.upsert({
+          where: { id: "auto-day" },
+          update: {},
+          create: {
+            id: "auto-day",
+            title: "Auto-Sorted Photos",
+            date: new Date(),
+            order: 9999
+          }
+        });
+        dayId = fallbackDay.id;
     }
 
     // 2. SMART LOCATION INFERENCE

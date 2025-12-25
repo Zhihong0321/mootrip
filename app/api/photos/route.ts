@@ -6,17 +6,28 @@ export const dynamic = "force-dynamic";
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const dayId = searchParams.get("dayId");
+  const all = searchParams.get("all") === "true";
+
+  const settings = await prisma.systemSettings.findUnique({
+    where: { id: "default" },
+  });
 
   const photos = await prisma.photo.findMany({
-    where: dayId ? {
+    where: all ? {} : (dayId ? {
       location: {
         dayId: dayId
       }
-    } : {},
+    } : {}),
     include: {
-      location: true
+      location: {
+        include: {
+          day: true
+        }
+      }
     },
-    orderBy: {
+    orderBy: settings?.autoDateMode ? {
+      dateTaken: "asc"
+    } : {
       order: "asc"
     }
   });

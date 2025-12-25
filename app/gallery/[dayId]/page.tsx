@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useMemo } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { MasonryGrid } from "@/components/MasonryGrid";
 import { Lightbox } from "@/components/Lightbox";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -9,10 +9,20 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export default function DayDetailPage() {
   const { dayId } = useParams();
+  const router = useRouter();
   const [day, setDay] = useState<any>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<any>(null);
 
   useEffect(() => {
+    // Check settings first
+    fetch("/api/settings")
+      .then(res => res.json())
+      .then(settings => {
+        if (settings.autoDateMode) {
+          router.replace("/gallery");
+        }
+      });
+
     fetch(`/api/days`) // We need to filter by ID but the current API returns all with locations
       .then(res => res.json())
       .then(days => {

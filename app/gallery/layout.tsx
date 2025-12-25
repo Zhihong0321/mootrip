@@ -9,13 +9,17 @@ export default async function GalleryLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const settings = await prisma.systemSettings.findUnique({
+    where: { id: "default" },
+  });
+
   const days = await prisma.day.findMany({
     orderBy: { order: "asc" },
   });
 
   return (
     <div className="min-h-screen bg-background">
-      <DayNavigator days={days} />
+      {!settings?.autoDateMode && <DayNavigator days={days} />}
       <main>{children}</main>
     </div>
   );
