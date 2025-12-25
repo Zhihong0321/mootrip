@@ -15,6 +15,7 @@ export function GalleryView({ autoDateMode = false }: GalleryViewProps) {
   const [loading, setLoading] = useState(true);
   const [selectedPhoto, setSelectedPhoto] = useState<any>(null);
   const [settings, setSettings] = useState<any>(null);
+  const [visibleCount, setVisibleCount] = useState(40);
 
   useEffect(() => {
     Promise.all([
@@ -38,6 +39,10 @@ export function GalleryView({ autoDateMode = false }: GalleryViewProps) {
     );
   }, [photos]);
 
+  const visiblePhotos = useMemo(() => {
+    return sortedPhotos.slice(0, visibleCount);
+  }, [sortedPhotos, visibleCount]);
+
   const magicIndices = useMemo(() => {
     if (!settings || !sortedPhotos.length) return [];
     
@@ -48,11 +53,9 @@ export function GalleryView({ autoDateMode = false }: GalleryViewProps) {
 
     const indices: number[] = [];
     for (let i = step; i < sortedPhotos.length; i += step) {
-        // Use a simple hash of the photo ID to create a stable but "random" offset
         const photo = sortedPhotos[i];
         const hash = photo.id.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
-        const offset = (hash % 5) - 2; // -2 to +2
-        
+        const offset = (hash % 5) - 2;
         const index = Math.max(0, Math.min(sortedPhotos.length - 1, i + offset));
         indices.push(index);
     }
@@ -63,7 +66,7 @@ export function GalleryView({ autoDateMode = false }: GalleryViewProps) {
     const groups: { [key: string]: { photos: any[], startGlobalIndex: number } } = {};
     let globalIndex = 0;
     
-    sortedPhotos.forEach((photo) => {
+    visiblePhotos.forEach((photo) => {
       const dateKey = new Date(photo.dateTaken).toLocaleDateString("en-US", {
         year: "numeric",
         month: "long",
@@ -76,7 +79,26 @@ export function GalleryView({ autoDateMode = false }: GalleryViewProps) {
       globalIndex++;
     });
     return groups;
-  }, [sortedPhotos]);
+  }, [visiblePhotos]);
+
+  // Infinite Scroll Observer
+  useEffect(() => {
+    if (loading || visibleCount >= sortedPhotos.length) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setVisibleCount((prev) => Math.min(prev + 40, sortedPhotos.length));
+        }
+      },
+      { threshold: 0.1, rootMargin: "400px" }
+    );
+
+    const sentinel = document.getElementById("scroll-sentinel");
+    if (sentinel) observer.observe(sentinel);
+
+    return () => observer.disconnect();
+  }, [loading, visibleCount, sortedPhotos.length]);
 
   const handleNext = () => {
     const currentIndex = sortedPhotos.findIndex((p) => p.id === selectedPhoto.id);
@@ -136,6 +158,13 @@ export function GalleryView({ autoDateMode = false }: GalleryViewProps) {
         {photos.length === 0 && (
           <div className="py-20 text-center text-muted-foreground uppercase tracking-widest text-xs font-bold">
             No photos found in the visual archives.
+          </div>
+        )}
+
+        {/* Scroll Sentinel */}
+        {visibleCount < sortedPhotos.length && (
+          <div id="scroll-sentinel" className="h-20 flex items-center justify-center">
+             <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
           </div>
         )}
       </div>
