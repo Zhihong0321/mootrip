@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Camera, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { ScrollingBackground } from "@/components/ScrollingBackground";
 import { AdminSidebar } from "@/components/AdminSidebar";
@@ -22,15 +22,6 @@ export default function WelcomePage() {
           className="space-y-8"
         >
           <div className="flex flex-col items-center">
-            <motion.div 
-              initial={{ scale: 0.5, rotate: -15, opacity: 0 }}
-              animate={{ scale: 1, rotate: 0, opacity: 1 }}
-              transition={{ delay: 0.2, type: "spring", damping: 12 }}
-              className="w-20 h-20 bg-primary/20 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-primary/30 mb-8"
-            >
-              <Camera className="w-10 h-10 text-primary" />
-            </motion.div>
-            
             <h1 className="flex flex-col items-center select-none drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)]">
               <span className="text-xl md:text-3xl font-light tracking-[0.3em] uppercase opacity-80 mb-2">
                 Moo's Family
