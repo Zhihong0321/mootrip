@@ -9,21 +9,13 @@ export default async function GalleryLayout({
 }: {
   children: React.ReactNode;
 }) {
-  let settings = null;
-  let days: any[] = [];
+  const settings = await prisma.systemSettings.findUnique({
+    where: { id: "default" },
+  });
 
-  try {
-    settings = await prisma.systemSettings.findUnique({
-      where: { id: "default" },
-    });
-
-    days = await prisma.day.findMany({
-      orderBy: { order: "asc" },
-    });
-  } catch (error) {
-    console.error("Failed to load gallery data:", error);
-    // Continue with defaults
-  }
+  const days = await prisma.day.findMany({
+    orderBy: { order: "asc" },
+  });
 
   return (
     <div className="min-h-screen bg-background">
