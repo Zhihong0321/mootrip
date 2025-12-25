@@ -12,20 +12,21 @@ export default function DayDetailPage() {
   const router = useRouter();
   const [day, setDay] = useState<any>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<any>(null);
+  const [currentProfile, setCurrentProfile] = useState<any>(null);
 
   useEffect(() => {
     // Check settings first
-    fetch("/api/settings")
-      .then(res => {
-        if (!res.ok) throw new Error("Failed to fetch settings");
-        return res.json();
-      })
-      .then(settings => {
+    Promise.all([
+      fetch("/api/settings").then(res => res.json()),
+      fetch("/api/admin/profiles/me").then(res => res.ok ? res.json() : null)
+    ])
+      .then(([settings, profile]) => {
         if (settings.autoDateMode) {
           router.replace("/gallery");
         }
+        setCurrentProfile(profile);
       })
-      .catch(err => console.error("Error loading settings:", err));
+      .catch(err => console.error("Error loading initial data:", err));
 
     fetch(`/api/days`) // We need to filter by ID but the current API returns all with locations
       .then(res => {
@@ -72,6 +73,11 @@ export default function DayDetailPage() {
     if (currentIndex > 0) {
       setSelectedPhoto(sortedPhotos[currentIndex - 1]);
     }
+  };
+
+  const handleDelete = (id: string) => {
+    setPhotos(prev => prev.filter(p => p.id !== id));
+    if (selectedPhoto?.id === id) setSelectedPhoto(null);
   };
 
   // Group photos by location
@@ -146,6 +152,8 @@ export default function DayDetailPage() {
           onClose={() => setSelectedPhoto(null)}
           onNext={handleNext}
           onPrev={handlePrev}
+          currentProfile={currentProfile}
+          onDelete={handleDelete}
         />
       )}
     </motion.div>

@@ -1,20 +1,24 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
-import { X, ChevronLeft, ChevronRight, Maximize2, ZoomIn, ZoomOut } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Maximize2, ZoomIn, ZoomOut, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from "framer-motion";
+import { toast } from "sonner";
 
 interface LightboxProps {
   photo: any;
   onClose: () => void;
   onNext: () => void;
   onPrev: () => void;
+  currentProfile?: any;
+  onDelete?: (id: string) => void;
 }
 
-export function Lightbox({ photo, onClose, onNext, onPrev }: LightboxProps) {
+export function Lightbox({ photo, onClose, onNext, onPrev, currentProfile, onDelete }: LightboxProps) {
   const [zoom, setZoom] = useState(1);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const startDistance = useRef<number>(0);
   const initialZoom = useRef<number>(1);
 
@@ -66,6 +70,28 @@ export function Lightbox({ photo, onClose, onNext, onPrev }: LightboxProps) {
   }, [photo?.id]);
 
   if (!photo) return null;
+
+  const canDelete = currentProfile && (currentProfile.role === "admin" || currentProfile.id === photo.uploaderId);
+
+  const handleDelete = async () => {
+    if (!confirm("Are you sure you want to delete this photo?")) return;
+    
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/photos/${photo.id}`, { method: "DELETE" });
+      if (res.ok) {
+        toast.success("Photo deleted");
+        onDelete?.(photo.id);
+      } else {
+        const error = await res.json();
+        toast.error(error.error || "Delete failed");
+      }
+    } catch (err) {
+      toast.error("Failed to delete photo");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const toggleZoom = () => {
     setZoom(prev => prev === 1 ? 2 : 1);
@@ -124,6 +150,17 @@ export function Lightbox({ photo, onClose, onNext, onPrev }: LightboxProps) {
           >
             {zoom > 1 ? <ZoomOut className="w-8 h-8" /> : <ZoomIn className="w-8 h-8" />}
           </Button>
+          {canDelete && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-white hover:bg-red-500/20 hover:text-red-500 rounded-full w-12 h-12"
+              onClick={handleDelete}
+              disabled={isDeleting}
+            >
+              <Trash2 className="w-6 h-6" />
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="icon"

@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import fs from "fs/promises";
 import path from "path";
 
+import { getCurrentProfile } from "@/lib/auth";
+
 export const dynamic = "force-dynamic";
 
 export async function PATCH(
@@ -10,6 +12,11 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const profile = await getCurrentProfile();
+    if (!profile || profile.role !== "admin") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { id } = await params;
     const { locationId, dateTaken } = await req.json();
 
@@ -35,15 +42,24 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const profile = await getCurrentProfile();
+    if (!profile) {
+      return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
+    }
+
     const { id } = await params;
 
-    // 1. Get photo data to find filenames
+    // 1. Get photo data to find filenames and check ownership
     const photo = await prisma.photo.findUnique({
       where: { id },
     });
 
     if (!photo) {
       return NextResponse.json({ error: "Photo not found" }, { status: 404 });
+    }
+
+    if (profile.role !== "admin" && photo.uploaderId !== profile.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
     // 2. Delete from Database

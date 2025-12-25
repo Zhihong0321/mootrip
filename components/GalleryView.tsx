@@ -16,15 +16,18 @@ export function GalleryView({ autoDateMode = false }: GalleryViewProps) {
   const [selectedPhoto, setSelectedPhoto] = useState<any>(null);
   const [settings, setSettings] = useState<any>(null);
   const [visibleCount, setVisibleCount] = useState(40);
+  const [currentProfile, setCurrentProfile] = useState<any>(null);
 
   useEffect(() => {
     Promise.all([
       fetch("/api/photos?all=true").then((res) => res.json()),
-      fetch("/api/settings").then((res) => res.json())
+      fetch("/api/settings").then((res) => res.json()),
+      fetch("/api/admin/profiles/me").then((res) => res.ok ? res.json() : null)
     ])
-      .then(([photoData, settingsData]) => {
+      .then(([photoData, settingsData, profileData]) => {
         setPhotos(photoData);
         setSettings(settingsData);
+        setCurrentProfile(profileData);
         setLoading(false);
       })
       .catch((err) => {
@@ -150,6 +153,11 @@ export function GalleryView({ autoDateMode = false }: GalleryViewProps) {
     }
   };
 
+  const handleDelete = (id: string) => {
+    setPhotos(prev => prev.filter(p => p.id !== id));
+    if (selectedPhoto?.id === id) setSelectedPhoto(null);
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-10 space-y-12">
@@ -224,6 +232,8 @@ export function GalleryView({ autoDateMode = false }: GalleryViewProps) {
           onClose={() => setSelectedPhoto(null)}
           onNext={handleNext}
           onPrev={handlePrev}
+          currentProfile={currentProfile}
+          onDelete={handleDelete}
         />
       )}
     </div>
