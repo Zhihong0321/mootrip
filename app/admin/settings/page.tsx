@@ -7,6 +7,9 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+
 export default function SettingsPage() {
   const [settings, setSettings] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -25,18 +28,17 @@ export default function SettingsPage() {
       });
   }, []);
 
-  const toggleAutoDateMode = async () => {
+  const updateSetting = async (key: string, value: any) => {
     setSaving(true);
-    const newValue = !settings.autoDateMode;
     try {
       const res = await fetch("/api/settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ autoDateMode: newValue }),
+        body: JSON.stringify({ [key]: value }),
       });
       if (res.ok) {
-        setSettings({ ...settings, autoDateMode: newValue });
-        toast.success(`Auto Date Mode ${newValue ? "Enabled" : "Disabled"}`);
+        setSettings({ ...settings, [key]: value });
+        toast.success("Settings updated");
       } else {
         throw new Error();
       }
@@ -46,6 +48,8 @@ export default function SettingsPage() {
       setSaving(false);
     }
   };
+
+  const toggleAutoDateMode = () => updateSetting("autoDateMode", !settings.autoDateMode);
 
   if (loading) {
     return (
@@ -84,11 +88,34 @@ export default function SettingsPage() {
               </Button>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-6">
             <div className="text-xs font-medium text-muted-foreground space-y-1">
               <p>• Gallery will group photos by date taken</p>
               <p>• Section headers will display the date</p>
               <p>• Photos will be shown in chronological order (oldest first)</p>
+            </div>
+
+            <div className="pt-4 border-t border-dashed space-y-4">
+               <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Magic Effect Frequency</Label>
+                  <Select 
+                    value={settings?.magicEffectFrequency || "mild"} 
+                    onValueChange={(v) => updateSetting("magicEffectFrequency", v)}
+                    disabled={saving}
+                  >
+                    <SelectTrigger className="h-10 bg-muted/30 border-none font-bold uppercase tracking-tighter">
+                      <SelectValue placeholder="Select frequency" />
+                    </SelectTrigger>
+                    <SelectContent className="border-none shadow-2xl rounded-xl">
+                      <SelectItem value="frequent" className="font-bold uppercase tracking-tighter">Frequent (Every 9-12)</SelectItem>
+                      <SelectItem value="mild" className="font-bold uppercase tracking-tighter">Mild (Every 12-15)</SelectItem>
+                      <SelectItem value="low" className="font-bold uppercase tracking-tighter">Low (Every 18-20)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-[9px] text-muted-foreground font-medium italic">
+                    Determines how often the Disney Magic Fade-in effect appears while scrolling.
+                  </p>
+               </div>
             </div>
           </CardContent>
         </Card>

@@ -14,16 +14,20 @@ export function GalleryView({ autoDateMode = false }: GalleryViewProps) {
   const [photos, setPhotos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPhoto, setSelectedPhoto] = useState<any>(null);
+  const [settings, setSettings] = useState<any>(null);
 
   useEffect(() => {
-    fetch("/api/photos?all=true")
-      .then((res) => res.json())
-      .then((data) => {
-        setPhotos(data);
+    Promise.all([
+      fetch("/api/photos?all=true").then((res) => res.json()),
+      fetch("/api/settings").then((res) => res.json())
+    ])
+      .then(([photoData, settingsData]) => {
+        setPhotos(photoData);
+        setSettings(settingsData);
         setLoading(false);
       })
       .catch((err) => {
-        console.error("Failed to fetch photos", err);
+        console.error("Failed to fetch data", err);
         setLoading(false);
       });
   }, []);
@@ -34,8 +38,28 @@ export function GalleryView({ autoDateMode = false }: GalleryViewProps) {
     );
   }, [photos]);
 
+  const magicIndices = useMemo(() => {
+    if (!settings || !photos.length) return [];
+    
+    const freq = settings.magicEffectFrequency || "mild";
+    let step = 15;
+    if (freq === "frequent") step = 10;
+    if (freq === "low") step = 20;
+
+    const indices: number[] = [];
+    for (let i = step; i < sortedPhotos.length; i += step) {
+        // Randomize within a small range (e.g., 12-15)
+        const offset = Math.floor(Math.random() * 4) - 2; // -2 to +1
+        const index = Math.max(0, Math.min(sortedPhotos.length - 1, i + offset));
+        indices.push(index);
+    }
+    return indices;
+  }, [settings, sortedPhotos]);
+
   const photosByDate = useMemo(() => {
-    const groups: { [key: string]: any[] } = {};
+    const groups: { [key: string]: { photos: any[], startGlobalIndex: number } } = {};
+    let globalIndex = 0;
+    
     sortedPhotos.forEach((photo) => {
       const dateKey = new Date(photo.dateTaken).toLocaleDateString("en-US", {
         year: "numeric",
@@ -43,9 +67,10 @@ export function GalleryView({ autoDateMode = false }: GalleryViewProps) {
         day: "numeric",
       });
       if (!groups[dateKey]) {
-        groups[dateKey] = [];
+        groups[dateKey] = { photos: [], startGlobalIndex: globalIndex };
       }
-      groups[dateKey].push(photo);
+      groups[dateKey].photos.push(photo);
+      globalIndex++;
     });
     return groups;
   }, [sortedPhotos]);
@@ -86,7 +111,7 @@ export function GalleryView({ autoDateMode = false }: GalleryViewProps) {
       </div>
 
       <div className="container mx-auto px-4 space-y-16">
-        {Object.entries(photosByDate).map(([date, datePhotos]) => (
+        {Object.entries(photosByDate).map(([date, group]) => (
           <div key={date} className="space-y-8">
             <div className="flex items-center gap-4">
               <div className="h-px flex-1 bg-gradient-to-r from-transparent via-muted-foreground/20 to-transparent" />
@@ -96,8 +121,12 @@ export function GalleryView({ autoDateMode = false }: GalleryViewProps) {
               <div className="h-px flex-1 bg-gradient-to-r from-transparent via-muted-foreground/20 to-transparent" />
             </div>
             <MasonryGrid
-              photos={datePhotos}
+              photos={group.photos}
               onPhotoClick={(p) => setSelectedPhoto(p)}
+              magicIndices={magicIndices
+                .filter(idx => idx >= group.startGlobalIndex && idx < group.startGlobalIndex + group.photos.length)
+                .map(idx => idx - group.startGlobalIndex)
+              }
             />
           </div>
         ))}

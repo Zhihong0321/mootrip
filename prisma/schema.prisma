@@ -63,6 +63,7 @@ model Log {
 }
 
 model SystemSettings {
-  id           String  @id @default("default")
-  autoDateMode Boolean @default(false)
+  id                    String  @id @default("default")
+  autoDateMode          Boolean @default(false)
+  magicEffectFrequency  String  @default("mild")
 }

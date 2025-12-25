@@ -8,29 +8,59 @@ import { motion, AnimatePresence } from "framer-motion";
 interface MasonryGridProps {
   photos: any[];
   onPhotoClick: (photo: any) => void;
+  magicIndices?: number[];
 }
 
-export function MasonryGrid({ photos, onPhotoClick }: MasonryGridProps) {
+export function MasonryGrid({ photos, onPhotoClick, magicIndices = [] }: MasonryGridProps) {
   const [loadedImages, setLoadedImages] = useState<Record<string, boolean>>({});
 
   return (
     <div className="w-full columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
       <AnimatePresence>
-        {photos.map((photo, index) => (
-          <motion.div 
-            key={photo.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: index * 0.05 }}
-            className="break-inside-avoid mb-4 cursor-pointer overflow-hidden rounded-xl bg-muted/20 border border-muted-foreground/10 group relative shadow-sm"
-            onClick={() => onPhotoClick(photo)}
-            whileHover={{ y: -5, scale: 1.01 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <div 
-              className="relative w-full" 
-              style={{ paddingBottom: `${(1 / photo.aspectRatio) * 100}%` }}
+        {photos.map((photo, index) => {
+          const isMagic = magicIndices.includes(index);
+          
+          return (
+            <div key={photo.id} className="break-inside-avoid mb-4">
+            <motion.div 
+              initial={isMagic ? { opacity: 0, scale: 0.9, filter: "brightness(0.5) contrast(1.2)" } : { opacity: 0, y: 20 }}
+              whileInView={isMagic ? { 
+                opacity: 1, 
+                scale: 1, 
+                filter: ["brightness(0.5) contrast(1.2)", "brightness(1.5) contrast(1.5)", "brightness(1) contrast(1)"],
+                transition: { 
+                    duration: 1.2, 
+                    times: [0, 0.6, 1],
+                    ease: "easeOut"
+                }
+              } : { 
+                opacity: 1, 
+                y: 0,
+                transition: { duration: 0.5, delay: (index % 10) * 0.05 }
+              }}
+              viewport={{ once: true, margin: "-100px" }}
+              className="cursor-pointer overflow-hidden rounded-xl bg-muted/20 border border-muted-foreground/10 group relative shadow-sm"
+              onClick={() => onPhotoClick(photo)}
+              whileHover={{ y: -5, scale: 1.01 }}
+              whileTap={{ scale: 0.98 }}
             >
+              {/* Magic Border Effect */}
+              {isMagic && (
+                <motion.div 
+                   initial={{ opacity: 0, scale: 0.8 }}
+                   whileInView={{ 
+                     opacity: [0, 1, 0], 
+                     scale: [0.8, 1.05, 1],
+                     transition: { duration: 1.5, times: [0, 0.4, 1] }
+                   }}
+                   className="absolute -inset-[2px] rounded-xl z-[-1] bg-gradient-to-r from-primary via-purple-500 to-primary blur-[4px]"
+                />
+              )}
+
+              <div 
+                className="relative w-full" 
+                style={{ paddingBottom: `${(1 / photo.aspectRatio) * 100}%` }}
+              >
               {!loadedImages[photo.id] && (
                 <Skeleton className="absolute inset-0 w-full h-full" />
               )}
@@ -52,7 +82,9 @@ export function MasonryGrid({ photos, onPhotoClick }: MasonryGridProps) {
                </p>
             </div>
           </motion.div>
-        ))}
+          </div>
+        );
+      })}
       </AnimatePresence>
     </div>
   );

@@ -22,12 +22,19 @@ export async function GET() {
 export async function PATCH(request: Request) {
   try {
     const body = await request.json();
-    const { autoDateMode } = body;
+    const { autoDateMode, magicEffectFrequency } = body;
 
     const settings = await prisma.systemSettings.upsert({
       where: { id: "default" },
-      update: { autoDateMode },
-      create: { id: "default", autoDateMode },
+      update: { 
+        autoDateMode: autoDateMode !== undefined ? autoDateMode : undefined,
+        magicEffectFrequency: magicEffectFrequency !== undefined ? magicEffectFrequency : undefined
+      },
+      create: { 
+        id: "default", 
+        autoDateMode: autoDateMode ?? false, 
+        magicEffectFrequency: magicEffectFrequency ?? "mild" 
+      },
     });
 
     return NextResponse.json(settings);
