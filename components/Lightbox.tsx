@@ -18,6 +18,11 @@ export function Lightbox({ photo, onClose, onNext, onPrev }: LightboxProps) {
   const startDistance = useRef<number>(0);
   const initialZoom = useRef<number>(1);
 
+  const zoomRef = useRef(zoom);
+  useEffect(() => {
+    zoomRef.current = zoom;
+  }, [zoom]);
+
   // Handle Android Back Button
   useEffect(() => {
     if (!photo) return;
@@ -26,7 +31,7 @@ export function Lightbox({ photo, onClose, onNext, onPrev }: LightboxProps) {
     window.history.pushState({ lightbox: true }, "");
 
     const handlePopState = (e: PopStateEvent) => {
-      if (zoom > 1) {
+      if (zoomRef.current > 1) {
         // If zoomed, reset zoom and push state back so lightbox stays open
         setZoom(1);
         window.history.pushState({ lightbox: true }, "");
@@ -45,7 +50,7 @@ export function Lightbox({ photo, onClose, onNext, onPrev }: LightboxProps) {
         window.history.back();
       }
     };
-  }, [photo, zoom, onClose]);
+  }, [photo?.id, onClose]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
