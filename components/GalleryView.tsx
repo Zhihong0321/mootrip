@@ -159,7 +159,7 @@ export function GalleryView({ autoDateMode = false }: GalleryViewProps) {
 
   const handleDelete = useCallback((id: string) => {
     setPhotos(prev => prev.filter(p => p.id !== id));
-    setSelectedPhoto(current => current?.id === id ? null : current);
+    setSelectedPhoto((current: any) => current?.id === id ? null : current);
   }, []);
 
   if (loading) {
