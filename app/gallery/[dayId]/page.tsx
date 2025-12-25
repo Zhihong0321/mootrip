@@ -16,19 +16,27 @@ export default function DayDetailPage() {
   useEffect(() => {
     // Check settings first
     fetch("/api/settings")
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch settings");
+        return res.json();
+      })
       .then(settings => {
         if (settings.autoDateMode) {
           router.replace("/gallery");
         }
-      });
+      })
+      .catch(err => console.error("Error loading settings:", err));
 
     fetch(`/api/days`) // We need to filter by ID but the current API returns all with locations
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch days");
+        return res.json();
+      })
       .then(days => {
         const currentDay = days.find((d: any) => d.id === dayId);
         setDay(currentDay);
-      });
+      })
+      .catch(err => console.error("Error loading days:", err));
   }, [dayId]);
 
   // We need an API for photos by day/location
@@ -39,8 +47,12 @@ export default function DayDetailPage() {
         // For now, let's fetch all photos and filter client-side 
         // Better: create /api/gallery/[dayId]
         fetch(`/api/photos?dayId=${dayId}`)
-            .then(res => res.json())
-            .then(data => setPhotos(data));
+            .then(res => {
+              if (!res.ok) throw new Error("Failed to fetch photos");
+              return res.json();
+            })
+            .then(data => setPhotos(data))
+            .catch(err => console.error("Error loading photos:", err));
     }
   }, [dayId]);
 
