@@ -89,7 +89,7 @@ export function ScrollingBackground() {
                   }}
                   animate={{ 
                     opacity: isBreathing ? 0.8 : 0.4,
-                    scale: isBreathing ? 1.5 : 1
+                    scale: isBreathing ? 1.25 : 1
                   }}
                   initial={{ opacity: 0.4, scale: 1 }}
                   transition={{ 
@@ -101,7 +101,7 @@ export function ScrollingBackground() {
                     src={photo.medium}
                     alt=""
                     className="absolute inset-0 w-full h-full object-cover"
-                    animate={{ scale: isBreathing ? 1.2 : 1 }} // Internal zoom for extra effect
+                    animate={{ scale: isBreathing ? 1 : 1 }} // Internal zoom disabled to keep max enlarge at 125%
                     transition={{ duration: 1 }}
                   />
                 </motion.div>
