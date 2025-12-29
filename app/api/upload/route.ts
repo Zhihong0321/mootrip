@@ -21,13 +21,32 @@ async function calculateHash(file: File) {
 export async function POST(req: NextRequest) {
   try {
     const cookieStore = await cookies();
-    const uploaderId = cookieStore.get("profile_session")?.value;
+    let uploaderId = cookieStore.get("profile_session")?.value;
+
+    const formData = await req.formData();
+    const uploaderName = formData.get("uploaderName") as string;
+
+    if (!uploaderId && uploaderName) {
+      // Find or create profile for uploaderName
+      let profile = await prisma.profile.findFirst({
+        where: { name: uploaderName }
+      });
+
+      if (!profile) {
+        profile = await prisma.profile.create({
+          data: {
+            name: uploaderName,
+            accessCode: `guest-${uuidv4().slice(0, 8)}`,
+            role: "user",
+          }
+        });
+      }
+      uploaderId = profile.id;
+    }
 
     if (!uploaderId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    const formData = await req.formData();
     
     const fullFile = formData.get("full") as File;
     const mediumFile = formData.get("medium") as File;

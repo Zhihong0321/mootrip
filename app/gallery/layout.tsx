@@ -1,6 +1,7 @@
 import React from "react";
 import { prisma } from "@/lib/prisma";
 import { DayNavigator } from "@/components/DayNavigator";
+import { AdminSidebar } from "@/components/AdminSidebar";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,7 @@ export default async function GalleryLayout({
 
   return (
     <div className="min-h-screen bg-background">
+      <AdminSidebar />
       {!settings?.autoDateMode && <DayNavigator days={days} />}
       <main>{children}</main>
     </div>
